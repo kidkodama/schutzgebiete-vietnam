@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vietnam – Schutzgebiete (WDPA)</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root{
+    --bg:#0f1418; --panel:#161d23; --panel2:#1d262e; --line:#2b3843;
+    --text:#e8edf1; --muted:#94a5b3; --accent:#4db6ac;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  #app{display:flex;height:100%;width:100%}
+  #side{width:370px;min-width:370px;height:100%;overflow-y:auto;background:var(--panel);border-right:1px solid var(--line)}
+  #map{flex:1;height:100%;background:#0b1013}
+  h1{font-size:17px;margin:0 0 4px 0;letter-spacing:.2px}
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin:18px 0 8px 0;font-weight:600}
+  .pad{padding:16px 16px 4px 16px}
+  .sub{font-size:12px;color:var(--muted);line-height:1.5}
+  .stats{display:flex;gap:8px;margin:12px 0 4px 0}
+  .stat{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+  .stat b{display:block;font-size:19px;line-height:1.15}
+  .stat span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .cat{display:flex;align-items:center;gap:9px;padding:6px 16px;cursor:pointer;font-size:13px;user-select:none}
+  .cat:hover{background:var(--panel2)}
+  .cat input{accent-color:var(--accent);margin:0;cursor:pointer}
+  .sw{width:15px;height:15px;border-radius:3px;flex:0 0 15px}
+  .cat .nm{flex:1;line-height:1.3}
+  .cat .nm small{display:block;color:var(--muted);font-size:11px}
+  .cat .ct{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px}
+  .off{opacity:.42}
+  #q{width:calc(100% - 32px);margin:4px 16px 8px 16px;padding:8px 10px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:13px}
+  #q:focus{outline:1px solid var(--accent)}
+  #hits{max-height:230px;overflow-y:auto;margin:0 8px}
+  .hit{padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12.5px;line-height:1.35}
+  .hit:hover{background:var(--panel2)}
+  .hit small{color:var(--muted);display:block}
+  .src{font-size:11.5px;color:var(--muted);line-height:1.6;padding:0 16px 20px 16px}
+  .src a{color:var(--accent);text-decoration:none}
+  .src a:hover{text-decoration:underline}
+  .src p{margin:0 0 9px 0}
+  .note{background:var(--panel2);border-left:2px solid var(--accent);padding:9px 11px;margin:0 16px 12px 16px;font-size:11.5px;color:var(--muted);line-height:1.55;border-radius:0 6px 6px 0}
+  .leaflet-popup-content-wrapper{background:#111a20;color:var(--text);border-radius:9px}
+  .leaflet-popup-tip{background:#111a20}
+  .leaflet-popup-content{margin:12px 14px;font-size:12.5px;line-height:1.5;max-height:340px;overflow:auto}
+  .pt{font-size:14.5px;font-weight:600;margin-bottom:2px;line-height:1.25}
+  .pd{font-size:11.5px;color:var(--muted);margin-bottom:9px}
+  table.pk{border-collapse:collapse;width:100%}
+  table.pk td{padding:2.5px 0;vertical-align:top;font-size:12px}
+  table.pk td:first-child{color:var(--muted);padding-right:12px;white-space:nowrap}
+  .badge{display:inline-block;padding:1.5px 7px;border-radius:20px;font-size:10.5px;font-weight:600;color:#08131a}
+  #ovl{position:absolute;inset:0;background:rgba(11,16,19,.93);display:flex;align-items:center;justify-content:center;z-index:2000;font-size:13.5px;color:var(--muted);text-align:center;padding:20px}
+  #ovl b{color:var(--text)}
+  .leaflet-control-attribution{background:rgba(0,0,0,.65)!important;color:#aab!important;font-size:10px!important}
+  .leaflet-control-attribution a{color:var(--accent)!important}
+  .btnrow{display:flex;gap:6px;padding:2px 16px 10px 16px}
+  .btn{flex:1;padding:6px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--muted);font-size:11.5px;cursor:pointer}
+  .btn:hover{color:var(--text);border-color:var(--accent)}
+  /* ---- Artenpanel ---- */
+  #panel{width:0;min-width:0;height:100%;overflow:hidden;background:var(--panel);border-left:1px solid var(--line);transition:width .18s ease}
+  #panel.open{width:400px;min-width:400px;overflow-y:auto}
+  #panel .ph{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line);padding:14px 16px 12px 16px;z-index:5}
+  #panel .ph h3{margin:0 0 6px 0;font-size:16px;line-height:1.25;padding-right:26px}
+  #close{position:absolute;top:11px;right:12px;background:none;border:none;color:var(--muted);font-size:19px;cursor:pointer;line-height:1}
+  #close:hover{color:var(--text)}
+  .pmeta{font-size:11.5px;color:var(--muted);line-height:1.5}
+  /* ---- Verkehr ---- */
+  .apin{background:none;border:none}
+  .ap{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      background:#12395e;border:2px solid #7ec8ff;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
+  .ap svg{width:12px;height:12px;fill:#cfe9ff}
+  .ap.dom{width:17px;height:17px;background:#1d2a36;border-color:#8fa6b8}
+  .ap.dom svg{width:9px;height:9px;fill:#c3d2de}
+  .ap.soon{background:#3b2a12;border-color:#ffb74d}
+  .ap.soon svg{fill:#ffd9a0}
+  .apl{position:absolute;left:26px;top:2px;font-size:10px;font-weight:700;color:#0d1318;background:rgba(215,235,255,.9);
+       padding:0 3px;border-radius:3px;white-space:nowrap;letter-spacing:.3px}
+  .traffic{padding:2px 0 6px 0}
+  .lstat{font-size:10.5px;color:var(--muted);padding:0 16px 8px 44px;line-height:1.45}
+  .tabs{display:flex;gap:4px;margin-top:11px;background:var(--panel2);padding:3px;border-radius:8px}
+  .tab{flex:1;padding:6px 4px;border:none;border-radius:6px;background:none;color:var(--muted);font-size:11.5px;font-weight:600;cursor:pointer;letter-spacing:.2px}
+  .tab:hover{color:var(--text)}
+  .tab.on{background:var(--accent);color:#06231f}
+  #zoom{position:fixed;display:none;z-index:9000;pointer-events:none;background:#0b1013;border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.65)}
+  #zoom img{display:block;width:100%;height:auto;min-height:110px;max-height:300px;object-fit:contain;border-radius:6px;background:#161d23}
+  img.spimg{cursor:zoom-in}
+  .modebar{margin:10px 16px 4px 16px;font-size:11px;color:var(--muted);background:var(--panel2);border-radius:6px;padding:8px 10px;line-height:1.5}
+  .modebar b{color:var(--text)}
+  .grp{font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);padding:16px 16px 6px 16px;font-weight:600}
+  .sp{display:flex;gap:11px;padding:10px 16px;border-bottom:1px solid rgba(43,56,67,.55)}
+  .sp:hover{background:var(--panel2)}
+  .spimg{width:84px;height:84px;flex:0 0 84px;border-radius:7px;object-fit:cover;background:var(--panel2);border:1px solid var(--line)}
+  .spimg.ph2{display:flex;align-items:center;justify-content:center;font-size:22px;color:#3d4c58}
+  .spb{flex:1;min-width:0}
+  .spn{font-size:13.5px;font-weight:600;line-height:1.3}
+  .spl{font-size:11.5px;color:var(--muted);font-style:italic;margin-bottom:5px}
+  .spx{font-size:11.5px;color:#c3ced7;line-height:1.5;margin-bottom:6px}
+  .spf{font-size:10.5px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .spf a{color:var(--accent);text-decoration:none}
+  .spf a:hover{text-decoration:underline}
+  .iucn{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;color:#0d0f11;letter-spacing:.3px}
+  .i-CR{background:#e53935;color:#fff}.i-EN{background:#fb8c00}.i-VU{background:#fdd835}
+  .i-NT{background:#c0ca33}.i-LC{background:#66bb6a}.i-DD,.i-NE{background:#78909c;color:#fff}
+  .spin{padding:24px 16px;color:var(--muted);font-size:12.5px}
+  .credit{font-size:10px;color:#6d7c88;padding:14px 16px 24px 16px;line-height:1.6}
+  .credit a{color:var(--accent);text-decoration:none}
+  .hintbtn{display:block;margin:8px 16px 0 16px;padding:7px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--muted);font-size:11.5px;cursor:pointer;width:calc(100% - 32px)}
+  .hintbtn:hover{color:var(--text);border-color:var(--accent)}
+  @media(max-width:820px){#app{flex-direction:column}#side{width:100%;min-width:0;height:47%;border-right:none;border-bottom:1px solid var(--line)}#map{height:53%}
+    #panel.open{width:100%;min-width:0;height:60%;border-left:none;border-top:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="side">
+    <div class="pad">
+      <h1>Schutzgebiete in Vietnam</h1>
+      <div class="sub">Alle in der <b>World Database on Protected Areas</b> (WDPA) registrierten Schutzgebiete – farblich nach Schutzkategorie unterschieden. Grenzen werden live beim Öffnen aus der offiziellen UNEP-WCMC-Datenbank geladen.<br><br><b style="color:var(--accent)">Gebiet anklicken</b> → rechts erscheinen die dort nachgewiesenen gefährdeten Tier- und Pflanzenarten mit Bild und Kurzsteckbrief (GBIF · IUCN · Wikipedia).</div>
+      <div class="stats">
+        <div class="stat"><b id="s-n">–</b><span>Gebiete</span></div>
+        <div class="stat"><b id="s-a">–</b><span>km² gemeldet</span></div>
+        <div class="stat"><b id="s-y">–</b><span>Datenstand</span></div>
+      </div>
+    </div>
+
+    <h2 style="padding-left:16px">Nationale Schutzkategorien</h2>
+    <div id="cats-nat"></div>
+    <h2 style="padding-left:16px">Internationale Auszeichnungen</h2>
+    <div id="cats-int"></div>
+    <div class="btnrow">
+      <button class="btn" id="all-on">Alle einblenden</button>
+      <button class="btn" id="all-off">Alle ausblenden</button>
+    </div>
+
+    <h2 style="padding-left:16px">Verkehr &amp; Anreise</h2>
+    <div id="traffic" class="traffic"></div>
+
+    <h2 style="padding-left:16px">Suche</h2>
+    <input id="q" placeholder="Name, z. B. Cúc Phương, Cát Bà …" autocomplete="off">
+    <div id="hits"></div>
+
+    <h2 style="padding-left:16px">Quellen &amp; Methodik</h2>
+    <div class="note" id="method">Wird nach dem Laden ergänzt.</div>
+    <div class="src">
+      <p><b>Geometrien &amp; Sachdaten (Primärquelle):</b><br>
+      UNEP-WCMC &amp; IUCN (2026): <i>Protected Planet – The World Database on Protected Areas (WDPA)</i>, Stand August 2026. Live abgefragt über den offiziellen Dienst
+      <a href="https://services5.arcgis.com/Mj0hjvkNtV7NRhA7/arcgis/rest/services/WDPA_v0/FeatureServer" target="_blank" rel="noopener">WDPA_v0 FeatureServer</a>.
+      Länderprofil: <a href="https://www.protectedplanet.net/country/VNM" target="_blank" rel="noopener">protectedplanet.net/country/VNM</a>.</p>
+
+      <p><b>Zitiervorschlag laut UNEP-WCMC:</b><br>
+      UNEP-WCMC (2026). Protected Area Profile for Viet Nam from the World Database on Protected Areas, August 2026.</p>
+
+      <p><b>Artnachweise:</b> GBIF.org – <a href="https://www.gbif.org/occurrence/search" target="_blank" rel="noopener">Global Biodiversity Information Facility</a>, Occurrence Search, live je Gebietsgeometrie abgefragt. Gefährdungsstatus aus der <a href="https://www.iucnredlist.org/" target="_blank" rel="noopener">IUCN Red List of Threatened Species</a> über das GBIF-Backbone. Steckbriefe/Bilder: <a href="https://de.wikipedia.org" target="_blank" rel="noopener">Wikipedia</a> bzw. Wikimedia Commons (CC BY-SA), ersatzweise GBIF-Belegfotos mit Urheber- und Lizenzangabe.</p>
+
+      <p><b>Verkehr:</b> Flughäfen aus <a href="https://ourairports.com/data/" target="_blank" rel="noopener">OurAirports</a> (Public Domain) – 22 Flughäfen mit Linienverkehr; Long Thành (LTH) ist im Bau und übernimmt laut ACV ab <b>1.12.2026</b> den Langstreckenverkehr von Tân Sơn Nhất.
+      Schienennetz: <a href="https://www.openrailwaymap.org/" target="_blank" rel="noopener">OpenRailwayMap</a>. ÖPNV-Netz: <a href="https://memomaps.de/" target="_blank" rel="noopener">ÖPNVKarte</a>.
+      Autobahnen/Expressways auf Abruf über die <a href="https://overpass-api.de/" target="_blank" rel="noopener">Overpass-API</a> (<code>highway=motorway</code>), alle aus OpenStreetMap (ODbL).
+      Nationalstraßen (Quốc lộ) sind nicht als eigene Ebene enthalten – der vollständige Fernstraßendatensatz ist über 40 MB groß; sie sind aber auf der OpenStreetMap-Grundkarte durchgehend dargestellt.
+      Entfernungsangaben in den Flughafen-Popups sind <b>Luftlinien</b>, keine Fahrzeiten.</p>
+
+      <p><b>Kartengrundlage:</b> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende (ODbL); Satellit/Relief: Esri, Maxar, Earthstar Geographics.</p>
+
+      <p><b>Rechtlicher Rahmen in Vietnam:</b> Gesetz über die Biodiversität Nr. 20/2008/QH12 (Art. 16) unterscheidet vier Kategorien von Schutzgebieten: Nationalpark (<i>vườn quốc gia</i>), Naturreservat (<i>khu dự trữ thiên nhiên</i>), Arten-/Habitatschutzgebiet (<i>khu bảo tồn loài – sinh cảnh</i>) und Landschaftsschutzgebiet (<i>khu bảo vệ cảnh quan</i>). Forstgesetz Nr. 16/2017/QH14 regelt die Sonderschutzwälder (<i>rừng đặc dụng</i>).
+      Quelltext: <a href="https://faolex.fao.org/docs/pdf/vie206322.pdf" target="_blank" rel="noopener">FAOLEX</a>.</p>
+
+      <p><b>Bekannte Einschränkungen – bitte beachten:</b></p>
+      <p>• Die WDPA führt für Vietnam 192 Einträge (Länderprofil August 2026); über den Kartendienst sind 191 mit Geometrie abrufbar. Nationale und internationale Ausweisungen <b>überlappen sich räumlich</b> (z. B. ist der Nationalpark Mũi Cà Mau zugleich Ramsar-Gebiet und Teil eines Biosphärenreservats). Flächen dürfen deshalb <b>nicht addiert</b> werden.</p>
+      <p>• Die WDPA zählt 32 Einträge der Kategorie „National Park“. Vietnamesische Regierungsangaben nennen aktuell <b>34 Nationalparks</b>; die Differenz entsteht durch zeitversetzte Meldungen an UNEP-WCMC: <b>Tà Đùng</b> (Nationalpark seit 2018) und <b>Sông Thanh</b> (seit 18.12.2020) sind in der WDPA noch als Naturreservate geführt. Sie sind auf der Karte enthalten, aber grün-hell statt dunkelgrün eingefärbt.</p>
+      <p>• Die englischen Kategorienamen der WDPA („Cultural and Historical Site“) fassen die vietnamesische Kategorie <i>khu bảo vệ cảnh quan</i> (Landschaftsschutzgebiet) mit ab – die vietnamesische Originalbezeichnung steht jeweils im Popup.</p>
+      <p>• Zuständigkeitsangaben (z. B. „People's Committee of …“) beziehen sich teils auf die <b>Provinzgliederung vor der Verwaltungsreform 2025</b>.</p>
+      <p>• Die Artenlisten sind <b>Nachweislisten aus GBIF, keine amtlichen Artenlisten</b>. Sie hängen stark von der Erfassungsintensität ab: gut beforschte Parks wirken artenreicher. Bekannte Arten fehlen, wenn zu ihnen keine georeferenzierten Datensätze veröffentlicht sind – bei stark bejagten Arten werden Fundorte teils bewusst zurückgehalten.</p>
+      <p>• Grenzen sind für die Darstellung generalisiert (≈200 m Toleranz) und <b>nicht rechtsverbindlich</b>. Für amtliche Zwecke gilt die Originalgeometrie der WDPA bzw. der vietnamesischen Behörden.</p>
+    </div>
+  </div>
+  <div id="map"><div id="ovl"><div><b>Schutzgebietsdaten werden geladen …</b><br>Direktabruf aus der WDPA (UNEP-WCMC). Benötigt eine Internetverbindung.</div></div></div>
+  <aside id="panel"></aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+const SERVICE='https://services5.arcgis.com/Mj0hjvkNtV7NRhA7/arcgis/rest/services/WDPA_v0/FeatureServer';
+const FIELDS='*'; // Punkt- und Polygon-Layer haben unterschiedliche Feldlisten
+
+// Farbschema je WDPA-Bezeichnung (desig_eng)
+const CATS={
+ 'National Park'                                     :{c:'#12833f', de:'Nationalpark', vi:'Vườn quốc gia', grp:'nat'},
+ 'Nature Reserve'                                    :{c:'#7cc043', de:'Naturreservat / Arten- & Habitatschutz', vi:'Khu dự trữ thiên nhiên / loài – sinh cảnh', grp:'nat'},
+ 'Cultural and Historical Site'                      :{c:'#d3a017', de:'Landschafts- & Kulturschutzgebiet', vi:'Khu bảo vệ cảnh quan', grp:'nat'},
+ 'Marine Protected Area'                             :{c:'#2196f3', de:'Meeresschutzgebiet', vi:'Khu bảo tồn biển', grp:'nat'},
+ 'Special Use Forest'                                :{c:'#8d6e63', de:'Sonderschutzwald', vi:'Rừng đặc dụng', grp:'nat'},
+ 'Wetland Protected Area'                            :{c:'#26c6da', de:'Feuchtgebietsschutz', vi:'Khu bảo tồn đất ngập nước', grp:'nat'},
+ 'UNESCO-MAB Biosphere Reserve'                      :{c:'#ff7043', de:'UNESCO-Biosphärenreservat', vi:'Khu dự trữ sinh quyển', grp:'int'},
+ 'Wetland of International Importance (Ramsar Site)' :{c:'#ab47bc', de:'Ramsar-Gebiet', vi:'Khu Ramsar', grp:'int'},
+ 'World Heritage Site (natural or mixed)'            :{c:'#ec407a', de:'UNESCO-Welterbe (Natur/gemischt)', vi:'Di sản thiên nhiên thế giới', grp:'int'}
+};
+const OTHER={c:'#90a4ae', de:'Sonstige', vi:'', grp:'nat'};
+const meta = d => CATS[d] || OTHER;
+
+const map=L.map('map',{zoomControl:true,preferCanvas:true}).setView([16.2,106.6],6);
+const osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap-Mitwirkende'});
+const light=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16,attribution:'Esri, HERE, Garmin, © OpenStreetMap-Mitwirkende'});
+const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Esri, Maxar, Earthstar Geographics'});
+const terr=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',{maxZoom:13,attribution:'Esri'});
+osm.addTo(map);
+L.control.layers({'OpenStreetMap':osm,'Hell (Esri Gray)':light,'Satellit (Esri)':sat,'Relief (Esri)':terr},null,{position:'topright'}).addTo(map);
+
+const groups={}, records=[];
+const fmtN = n => (n==null||isNaN(n))?'–':Number(n).toLocaleString('de-DE',{maximumFractionDigits:2});
+const nr = v => (v==null||v===''||v==='Not Reported'||v==='Not Applicable')?null:v;
+
+function popup(p){
+  const m=meta(p.desig_eng);
+  const rows=[
+    ['Vietnamesische Kategorie', nr(p.desig)],
+    ['WDPA-Kategorie', p.desig_eng],
+    ['Ebene', p.desig_type==='International'?'International':'National'],
+    ['IUCN-Kategorie', nr(p.iucn_cat)],
+    ['Gemeldete Fläche', p.rep_area?fmtN(p.rep_area)+' km²':null],
+    ['davon marin', p.rep_m_area?fmtN(p.rep_m_area)+' km²':null],
+    ['GIS-berechnete Fläche', p.gis_area?fmtN(p.gis_area)+' km²':null],
+    ['Ausgewiesen', nr(p.status_yr)],
+    ['Status', nr(p.status)],
+    ['Verwaltung', nr(p.mang_auth)],
+    ['Governance', nr(p.gov_type)]
+  ].filter(r=>r[1]!=null);
+  return `<div class="pt">${p.name||'ohne Namen'}</div>
+    <div class="pd"><span class="badge" style="background:${m.c}">${m.de}</span></div>
+    <table class="pk">${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
+    <div class="pd" style="margin:10px 0 0 0">Quelle: WDPA (UNEP-WCMC/IUCN), Stand 08/2026 ·
+      <a style="color:#4db6ac" target="_blank" rel="noopener" href="https://www.protectedplanet.net/search?search_term=${encodeURIComponent(p.name||'')}">bei Protected Planet prüfen</a></div>`;
+}
+
+function style(p){
+  const m=meta(p.desig_eng); const isInt=p.desig_type==='International';
+  return {color:m.c, weight:isInt?2:1.1, opacity:.95, fillColor:m.c, fillOpacity:isInt?0.07:0.34, dashArray:isInt?'6,4':null};
+}
+
+async function q(layer){
+  const u=`${SERVICE}/${layer}/query?where=${encodeURIComponent("iso3='VNM'")}&outFields=${FIELDS}`
+    +`&returnGeometry=true&outSR=4326&geometryPrecision=5${layer===1?'&maxAllowableOffset=0.002':''}`
+    +`&resultRecordCount=2000&f=geojson`;
+  const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status);
+  const j=await r.json();
+  if(j.error) throw new Error(j.error.message||'Dienstfehler');
+  if(!j.features) throw new Error('Antwort ohne Datensätze');
+  return j;
+}
+
+function addFeatures(gj){
+  L.geoJSON(gj,{
+    style:f=>style(f.properties),
+    pointToLayer:(f,ll)=>L.circleMarker(ll,{radius:6,color:meta(f.properties.desig_eng).c,weight:2,fillColor:meta(f.properties.desig_eng).c,fillOpacity:.55}),
+    onEachFeature:(f,l)=>{
+      const p=f.properties, d=p.desig_eng||'—';
+      if(!groups[d]) groups[d]=L.layerGroup().addTo(map);
+      l.bindPopup(()=>popup(p),{maxWidth:340});
+      l.bindTooltip(p.name||'', {sticky:true, direction:'top'});
+      l.on('click',()=>openSpecies(f));
+      l.addTo(groups[d]);
+      records.push({name:p.name||'', d:d, layer:l, feature:f});
+    }
+  });
+}
+
+/* ============================================================
+   VERKEHR – Flughäfen (OurAirports, Public Domain), Schienen- und
+   ÖPNV-Netz als Kachel-Overlays (OSM/ODbL), Fernstraßen auf Abruf.
+   ============================================================ */
+// [IATA, ICAO, lat, lon, Name, Ort, international?]
+const AIRPORTS=[
+ ["DIN","VVDB",21.3975,103.008,"Điện Biên Phủ","Điện Biên Phủ",0],
+ ["HAN","VVNB",21.2212,105.807,"Nội Bài International","Hà Nội (Sóc Sơn)",1],
+ ["VDO","VVVD",21.1207,107.4154,"Vân Đồn International","Vân Đồn (Hạ Long)",1],
+ ["HPH","VVCI",20.8174,106.7243,"Cát Bi International","Hải Phòng",1],
+ ["THD","VVTX",19.9017,105.4678,"Thọ Xuân","Thanh Hóa",0],
+ ["VII","VVVH",18.7376,105.671,"Vinh","Vinh",0],
+ ["VDH","VVDH",17.515,106.5906,"Đồng Hới","Đồng Hới",0],
+ ["HUI","VVPB",16.4006,107.7031,"Phú Bài International","Huế",1],
+ ["DAD","VVDN",16.0439,108.199,"Đà Nẵng International","Đà Nẵng",1],
+ ["VCL","VVCA",15.4033,108.706,"Chu Lai","Tam Nghĩa (Quảng Nam)",0],
+ ["PXU","VVPK",14.0045,108.017,"Pleiku","Pleiku",0],
+ ["UIH","VVPC",13.955,109.042,"Phù Cát","Quy Nhơn",0],
+ ["TBB","VVTH",13.0496,109.334,"Tuy Hòa (Đông Tác)","Tuy Hòa",0],
+ ["BMV","VVBM",12.6683,108.12,"Buôn Ma Thuột","Buôn Ma Thuột",0],
+ ["CXR","VVCR",11.9982,109.219,"Cam Ranh International","Nha Trang / Cam Ranh",1],
+ ["DLI","VVDL",11.7506,108.367,"Liên Khương","Đà Lạt",0],
+ ["SGN","VVTS",10.8188,106.652,"Tân Sơn Nhất International","Hồ-Chí-Minh-Stadt",1],
+ ["PQC","VVPQ",10.1698,103.9935,"Phú Quốc International","Phú Quốc",1],
+ ["VCA","VVCT",10.0834,105.7094,"Cần Thơ International","Cần Thơ",1],
+ ["VKG","VVRG",9.958,105.1324,"Rạch Giá","Rạch Giá",0],
+ ["CAH","VVCM",9.1777,105.1778,"Cà Mau","Cà Mau",0],
+ ["VCS","VVCS",8.7318,106.633,"Côn Đảo","Côn Đảo",0],
+ ["LTH","VVLT",10.7728,107.0406,"Long Thành International","Đồng Nai (40 km östl. HCMC)",2]
+];
+const PLANE='<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>';
+const airportLayer=L.layerGroup();
+const railTiles=L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
+  {maxZoom:19,opacity:.9,attribution:'Bahndaten: <a href="https://www.openrailwaymap.org/">OpenRailwayMap</a> (ODbL)'});
+const ptTiles=L.tileLayer('https://tileserver.memomaps.de/tilegen/{z}/{x}/{y}.png',
+  {maxZoom:18,opacity:.85,attribution:'ÖPNV: <a href="https://memomaps.de/">ÖPNVKarte</a> / OpenStreetMap (ODbL)'});
+const roadLayer=L.layerGroup();
+let roadsLoaded=false, roadsLoading=false;
+
+const RAD=Math.PI/180;
+function distKm(a,b,c,d){const s=Math.sin,co=Math.cos;
+  const h=s((c-a)*RAD/2)**2+co(a*RAD)*co(c*RAD)*s((d-b)*RAD/2)**2;
+  return 2*6371*Math.asin(Math.sqrt(h));}
+function centerOf(rec){
+  if(rec.layer.getLatLng) return rec.layer.getLatLng();
+  const b=rec.layer.getBounds&&rec.layer.getBounds(); return b&&b.isValid()?b.getCenter():null;
+}
+function nearestAreas(lat,lon,n){
+  return records.map(r=>{const c=centerOf(r); return c?{r,km:distKm(lat,lon,c.lat,c.lng)}:null;})
+    .filter(Boolean).sort((a,b)=>a.km-b.km).slice(0,n);
+}
+function airportPopup(a){
+  const [iata,icao,lat,lon,name,city,intl]=a;
+  const near=nearestAreas(lat,lon,5).map(x=>
+    `<tr><td style="color:var(--muted)">${Math.round(x.km)} km</td><td>${esc(x.r.name)}<br><span style="color:#5d6b76;font-size:11px">${esc(meta(x.r.d).de)}</span></td></tr>`).join('');
+  return `<div class="pt">${esc(name)} <span style="color:#7ec8ff">${iata}</span></div>
+    <div class="pd">${intl===2?'<b style="color:#ffb74d">Eröffnung 1.12.2026</b> · geplanter Langstrecken-Hub':(intl?'Internationaler Flughafen':'Inlandsflughafen')} · ${esc(city)} · ICAO ${icao}</div>
+    <table class="pk"><tr><td>Luftlinie</td><td><b>Nächstgelegene Schutzgebiete</b></td></tr>${near}</table>
+    <div class="pd" style="margin-top:9px">Luftlinie, keine Fahrzeit. Quelle Flughafen: OurAirports (Public Domain) ·
+      <a style="color:#4db6ac" target="_blank" rel="noopener" href="https://de.wikipedia.org/w/index.php?search=${encodeURIComponent(name+' Flughafen')}">Wikipedia</a></div>`;
+}
+AIRPORTS.forEach(a=>{
+  const [iata,icao,lat,lon,name,city,intl]=a;
+  const cls=intl===2?'ap soon':(intl?'ap':'ap dom');
+  const m=L.marker([lat,lon],{icon:L.divIcon({className:'apin',
+    html:`<div class="${cls}">${PLANE}</div><div class="apl">${iata}</div>`,
+    iconSize:[22,22],iconAnchor:[11,11]}),zIndexOffset:600});
+  m.bindPopup(()=>airportPopup(a),{maxWidth:320});
+  m.bindTooltip(name+' ('+iata+')',{direction:'top'});
+  m.addTo(airportLayer);
+});
+
+const OVERPASS=['https://overpass.kumi.systems/api/interpreter',
+                'https://overpass-api.de/api/interpreter',
+                'https://overpass.private.coffee/api/interpreter'];
+async function loadRoads(setStatus){
+  if(roadsLoaded||roadsLoading) return; roadsLoading=true;
+  const query=`[out:json][timeout:300];area["ISO3166-1"="VN"][admin_level=2]->.a;`+
+              `way(area.a)["highway"="motorway"];out skel geom;`;
+  for(let i=0;i<OVERPASS.length;i++){
+    try{
+      setStatus(`lädt aus OpenStreetMap … (Server ${i+1}/${OVERPASS.length}, ca. 3–4 MB)`);
+      const r=await fetch(OVERPASS[i],{method:'POST',body:'data='+encodeURIComponent(query),
+        headers:{'Content-Type':'application/x-www-form-urlencoded'}});
+      const txt=await r.text();
+      if(!txt.trim().startsWith('{')) continue;
+      const j=JSON.parse(txt);
+      let n=0;
+      j.elements.forEach(e=>{
+        if(!e.geometry||e.geometry.length<2) return;
+        const pts=dp(e.geometry.map(p=>[p.lon,p.lat]),0.0006).map(p=>[p[1],p[0]]);
+        L.polyline(pts,{color:'#3949ab',weight:2.2,opacity:.85}).addTo(roadLayer); n++;
+      });
+      roadsLoaded=true; roadsLoading=false;
+      setStatus(`${n} Abschnitte geladen · OpenStreetMap (ODbL), Stand heute`);
+      return;
+    }catch(e){/* nächster Spiegel */}
+  }
+  roadsLoading=false;
+  setStatus('Konnte nicht geladen werden – Overpass-Server derzeit ausgelastet. Später erneut versuchen; Straßen sind auch auf der OpenStreetMap-Grundkarte sichtbar.');
+}
+
+function buildTraffic(){
+  const host=document.getElementById('traffic');
+  const items=[
+    {id:'air', c:'#7ec8ff', t:'Flughäfen', s:'22 Linienflughäfen + Long Thành (ab 12/2026)', on:true,
+     add:()=>airportLayer.addTo(map), rm:()=>map.removeLayer(airportLayer)},
+    {id:'rail', c:'#c9a227', t:'Schienennetz', s:'OpenRailwayMap – Fernbahn, Metro, Rangieranlagen', on:true,
+     add:()=>railTiles.addTo(map), rm:()=>map.removeLayer(railTiles)},
+    {id:'pt', c:'#26c6da', t:'ÖPNV-Netz', s:'ÖPNVKarte – Bus-, Bahn- und Fährlinien', on:false,
+     add:()=>ptTiles.addTo(map), rm:()=>map.removeLayer(ptTiles)},
+    {id:'road', c:'#3949ab', t:'Autobahnen / Expressways', s:'Auf Abruf aus OpenStreetMap – erster Klick lädt ca. 3–4 MB, das dauert je nach Serverlast 1–2 Minuten', on:false,
+     add:function(){ roadLayer.addTo(map); loadRoads(m=>{const el=document.getElementById('st-road'); if(el) el.textContent=m;}); },
+     rm:()=>map.removeLayer(roadLayer)}
+  ];
+  host.innerHTML='';
+  items.forEach(it=>{
+    const row=document.createElement('label'); row.className='cat'+(it.on?'':' off');
+    row.innerHTML=`<input type="checkbox" ${it.on?'checked':''}><span class="sw" style="background:${it.c}"></span>
+      <span class="nm">${it.t}<small>${it.s}</small></span>`;
+    row.querySelector('input').addEventListener('change',e=>{
+      if(e.target.checked){ it.add(); row.classList.remove('off'); }
+      else { it.rm(); row.classList.add('off'); }
+    });
+    host.appendChild(row);
+    if(it.id==='road'){ const s=document.createElement('div'); s.className='lstat'; s.id='st-road'; host.appendChild(s); }
+    if(it.on) it.add();
+  });
+}
+
+/* ============================================================
+   ARTEN – Nachweise aus GBIF, IUCN-Status, Steckbrief/Bild aus
+   Wikipedia (Fallback: GBIF-Media). Alles live, nichts vorgeneriert.
+   ============================================================ */
+const GBIF='https://api.gbif.org/v1';
+const THREAT=['CR','EN','VU'];
+/* Offengelegte Auswahlliste für den Reiter „Charismatisch": GBIF-Backbone-Schlüssel der
+   Familien/Gruppen, die in der Naturschutzkommunikation Südostasiens als Flaggschiffarten
+   gelten. Es ist eine redaktionelle Auswahl – keine Kategorie aus einer Datenbank. */
+const CHARIS={
+  1:[ /* Tiere */
+    5484,9622,3239561,      // Gibbons, Languren/Makaken, Plumploris
+    9427,9703,9681,         // Elefanten, Katzen, Bären
+    9614,5298,5480,         // Hornträger (Saola), Hirsche/Muntjaks, Schuppentiere
+    5307,5312,              // Marder/Otter, Schleichkatzen
+    9720,9331,8482797,      // Nashornvögel, Fasane/Pfaue, Papageien
+    9289,9313,2877,         // Störche, Kraniche, Greifvögel
+    9334,9356,3242200,      // Pittas, Trogone, Bartvögel
+    5685,5023,4287591,      // Krokodile, Warane, Pythons
+    5463,9618,5469,9413,5464,4287906, // Schildkröten (6 Familien)
+    9462,5314,              // Dugong, Delfine
+    9417                    // Ritterfalter
+  ],
+  6:[7689,6682,6645,6168,2413] /* Orchideen, Kannenpflanzen, Flügelfruchtgewächse, Palmfarne, Rafflesien */
+};
+const TABS={
+  threat:{label:'Gefährdet', hint:'Im Gebiet nachgewiesene Arten der IUCN-Kategorien CR, EN und VU, sortiert nach Gefährdungsgrad.'},
+  charis:{label:'Charismatisch', hint:'Nachweise aus einer offengelegten Auswahl von Flaggschiff-Gruppen (Primaten, Großsäuger, Nashornvögel, Fasane, Schildkröten, Orchideen u. a.) – unabhängig vom Gefährdungsstatus. Redaktionelle Auswahl, keine Datenbankkategorie.'},
+  common:{label:'Häufig', hint:'Die im Gebiet am häufigsten dokumentierten Arten. Das spiegelt vor allem die Beobachtungsintensität, nicht die tatsächliche Häufigkeit im Gelände.'}
+};
+const IUCN_DE={CR:'vom Aussterben bedroht',EN:'stark gefährdet',VU:'gefährdet',NT:'potenziell gefährdet',LC:'nicht gefährdet',DD:'ungenügende Daten'};
+const RANK={CR:0,EN:1,VU:2,NT:3,LC:4,DD:5,NE:6};
+const cache=new Map();
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* --- Geometrie → WKT (vereinfacht, gegen den Uhrzeigersinn) --- */
+function sqSegDist(p,a,b){let x=a[0],y=a[1],dx=b[0]-x,dy=b[1]-y;
+  if(dx||dy){const t=((p[0]-x)*dx+(p[1]-y)*dy)/(dx*dx+dy*dy);
+    if(t>1){x=b[0];y=b[1];}else if(t>0){x+=dx*t;y+=dy*t;}}
+  dx=p[0]-x;dy=p[1]-y;return dx*dx+dy*dy;}
+function dp(pts,tol){if(pts.length<=4)return pts;const sq=tol*tol,last=pts.length-1,keep=new Array(pts.length).fill(false);
+  keep[0]=keep[last]=true;const st=[[0,last]];
+  while(st.length){const [i,j]=st.pop();let md=0,idx=-1;
+    for(let k=i+1;k<j;k++){const d=sqSegDist(pts[k],pts[i],pts[j]);if(d>md){md=d;idx=k;}}
+    if(md>sq){keep[idx]=true;st.push([i,idx],[idx,j]);}}
+  return pts.filter((_,i)=>keep[i]);}
+function sArea(r){let s=0;for(let i=0,j=r.length-1;i<r.length;j=i++)s+=(r[j][0]*r[i][1]-r[i][0]*r[j][1]);return s/2;}
+function closeRing(r){const a=r[0],b=r[r.length-1];return (a[0]===b[0]&&a[1]===b[1])?r:r.concat([a]);}
+function toWKT(geom,budget=170){
+  if(geom.type==='Point'||geom.type==='MultiPoint') return null;
+  let rings=geom.type==='Polygon'?[geom.coordinates[0]]:geom.coordinates.map(p=>p[0]);
+  rings=rings.map(r=>({r,a:Math.abs(sArea(r))})).sort((x,y)=>y.a-x.a);
+  const tot=rings.reduce((s,x)=>s+x.a,0)||1; let acc=0; const chosen=[];
+  for(const x of rings){chosen.push(x.r);acc+=x.a;if(acc/tot>=0.97||chosen.length>=6)break;}
+  let out=chosen,tol=0.0005;
+  for(let i=0;i<14;i++){
+    out=chosen.map(r=>{let s=closeRing(dp(r,tol));return s.length<4?closeRing(r):s;});
+    if(out.reduce((s,r)=>s+r.length,0)<=budget) break; tol*=1.7;
+  }
+  out=out.filter(r=>r.length>=4).map(r=>sArea(r)<0?[...r].reverse():r);
+  if(!out.length) return null;
+  const f=r=>'(('+r.map(p=>p[0].toFixed(4)+' '+p[1].toFixed(4)).join(',')+'))';
+  return out.length===1?'POLYGON'+f(out[0]):'MULTIPOLYGON('+out.map(f).join(',')+')';
+}
+function bboxOf(geom){
+  const cs=(geom.type==='Point'?[geom.coordinates]:
+            geom.type==='MultiPoint'?geom.coordinates:
+            geom.type==='Polygon'?geom.coordinates.flat():geom.coordinates.flat(2));
+  const lo=cs.map(p=>p[0]),la=cs.map(p=>p[1]);
+  const pad=(geom.type==='Point'||geom.type==='MultiPoint')?0.05:0;
+  return [Math.min(...lo)-pad,Math.min(...la)-pad,Math.max(...lo)+pad,Math.max(...la)+pad];
+}
+
+/* --- GBIF-Abfrage für ein Gebiet --- */
+async function gbifQuery(spatial, kingdomKey, tab){
+  const p=new URLSearchParams();
+  p.set('limit','300'); p.set('hasCoordinate','true'); p.set('hasGeospatialIssue','false');
+  p.set('kingdomKey',kingdomKey); p.set('facet','speciesKey'); p.set('facetLimit','120');
+  if(tab==='threat') THREAT.forEach(c=>p.append('iucnRedListCategory',c));
+  if(tab==='charis') (CHARIS[kingdomKey]||[]).forEach(k=>p.append('taxonKey',k));
+  if(spatial.wkt) p.set('geometry',spatial.wkt);
+  else { p.set('decimalLongitude',spatial.bbox[0]+','+spatial.bbox[2]);
+         p.set('decimalLatitude',spatial.bbox[1]+','+spatial.bbox[3]); }
+  const url=`${GBIF}/occurrence/search?`+p.toString();
+  for(let attempt=0;attempt<3;attempt++){
+    const r=await fetch(url);
+    if(r.ok) return r.json();
+    if(r.status===429||r.status===503){ await new Promise(s=>setTimeout(s,600*(attempt+1))); continue; }
+    throw Object.assign(new Error('GBIF '+r.status),{status:r.status});
+  }
+  throw Object.assign(new Error('GBIF überlastet (429)'),{status:429});
+}
+function collapse(json, byCount){
+  const counts={}; (json.facets?.[0]?.counts||[]).forEach(c=>counts[c.name]=c.count);
+  const seen=new Map();
+  (json.results||[]).forEach(o=>{
+    if(!o.speciesKey||!o.species) return;
+    if(seen.has(o.speciesKey)) return;
+    seen.set(o.speciesKey,{key:o.speciesKey,sci:o.species,kingdom:o.kingdom,cls:o.class,order:o.order,
+      family:o.family,iucn:o.iucnRedListCategory||'NE',n:counts[o.speciesKey]||1});
+  });
+  const v=[...seen.values()];
+  return byCount ? v.sort((a,b)=>b.n-a.n)
+                 : v.sort((a,b)=>(RANK[a.iucn]??9)-(RANK[b.iucn]??9)||b.n-a.n);
+}
+async function speciesFor(feature, tab){
+  const id=feature.properties.OBJECTID+'|'+tab;
+  if(cache.has(id)) return cache.get(id);
+  const wkt=toWKT(feature.geometry), bbox=bboxOf(feature.geometry).map(v=>+v.toFixed(4));
+  let spatial=wkt?{wkt}:{bbox}, mode=wkt?'polygon':'bbox';
+  const run=async(t)=>{
+    try{ return await Promise.all([gbifQuery(spatial,1,t), gbifQuery(spatial,6,t)]); }
+    catch(e){ if(spatial.wkt && e.status===400){ spatial={bbox}; mode='bbox';
+        return Promise.all([gbifQuery(spatial,1,t), gbifQuery(spatial,6,t)]); } throw e; }
+  };
+  const [a,p]=await run(tab);
+  const byCount = tab==='common';
+  const res={animals:collapse(a,byCount).slice(0,10), plants:collapse(p,byCount).slice(0,8),
+             tab, mode, bbox, totalA:a.count||0, totalP:p.count||0};
+  cache.set(id,res); return res;
+}
+
+/* --- Steckbrief + Bild --- */
+async function wikiSummary(lang,name){
+  try{
+    const r=await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name.replace(/ /g,'_'))}?redirect=true`);
+    if(!r.ok) return null; const j=await r.json();
+    if(j.type&&j.type!=='standard') return null;
+    return {title:j.title, extract:j.extract||'', img:j.thumbnail?.source||null, url:j.content_urls?.desktop?.page||null, lang};
+  }catch(e){ return null; }
+}
+const LIC=u=>!u?null:String(u).replace(/^https?:\/\/(www\.)?creativecommons\.org\/(licenses|publicdomain)\//,'CC ')
+  .replace(/\/$/,'').replace(/\//g,' ').replace(/^CC zero 1\.0$/,'CC0 1.0').toUpperCase();
+async function gbifImage(key){
+  try{
+    const j=await (await fetch(`${GBIF}/occurrence/search?taxonKey=${key}&mediaType=StillImage&limit=5`)).json();
+    const cands=(j.results||[]).flatMap(o=>o.media||[]).filter(m=>m.identifier&&/\.(jpe?g|png)(\?|$)/i.test(m.identifier));
+    if(!cands.length) return null;
+    // Kleinere Varianten bevorzugen: iNaturalist liefert zu /original. auch /medium.
+    const m=cands.find(c=>/inaturalist/i.test(c.identifier))||cands[0];
+    const img=m.identifier.replace(/\/original\.(jpe?g|png)/i,'/medium.$1');
+    return {img,creator:m.creator||m.rightsHolder||null,license:LIC(m.license)};
+  }catch(e){ return null; }
+}
+function trim(t,max=230){
+  if(!t) return '';
+  if(t.length<=max) return t;
+  const cut=t.slice(0,max); const i=Math.max(cut.lastIndexOf('. '),cut.lastIndexOf('. '));
+  return (i>90?cut.slice(0,i+1):cut.trim()+' …');
+}
+async function enrich(sp){
+  const w=(await wikiSummary('de',sp.sci)) || (await wikiSummary('en',sp.sci));
+  let img=w?.img||null, credit=w?'Wikipedia ('+w.lang+')':null;
+  if(!img){ const g=await gbifImage(sp.key);
+    if(g){ img=g.img; credit='Foto: '+(g.creator||'unbekannt')+(g.license?', '+g.license:'')+' (GBIF)'; } }
+  return {...sp, de:w&&w.lang==='de'?w.title:null, en:w&&w.lang==='en'?w.title:null,
+          extract:trim(w?.extract), url:w?.url||null, img, credit};
+}
+
+/* --- Rendering --- */
+function spCard(s){
+  const title = s.de || s.en || s.sci;
+  const fact  = [s.cls,s.order,s.family].filter(Boolean).join(' · ');
+  const body  = s.extract || `${fact||'Taxonomie unvollständig'}. IUCN-Status: ${IUCN_DE[s.iucn]||s.iucn}. Steckbrieftext liegt in Wikipedia nicht vor.`;
+  const img   = s.img
+      ? `<img class="spimg" loading="lazy" src="${esc(s.img)}" data-big="${esc(bigger(s.img))}" alt="${esc(title)}" title="Für eine größere Ansicht mit dem Mauszeiger darüberfahren" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'spimg ph2',textContent:'—'}))">`
+      : `<div class="spimg ph2">—</div>`;
+  return `<div class="sp">${img}<div class="spb">
+    <div class="spn">${esc(title)} <span class="iucn i-${s.iucn}">${s.iucn}</span></div>
+    <div class="spl">${esc(s.sci)}${fact?' · '+esc(fact):''}</div>
+    <div class="spx">${esc(body)}</div>
+    <div class="spf"><span>${s.n} Nachweis${s.n===1?'':'e'} im Gebiet</span>
+      ${s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener">Wikipedia</a>`:''}
+      <a href="https://www.gbif.org/species/${s.key}" target="_blank" rel="noopener">GBIF</a>
+      ${s.credit?`<span style="color:#5d6b76">${esc(s.credit)}</span>`:''}
+    </div></div></div>`;
+}
+
+const panel=document.getElementById('panel');
+function closePanel(){ panel.classList.remove('open'); panel.innerHTML=''; hideZoom(); setTimeout(()=>map.invalidateSize(),200); }
+let openToken=0, curFeature=null, curTab='threat';
+
+/* --- Bildlupe beim Überfahren --- */
+const zoomBox=document.createElement('div'); zoomBox.id='zoom'; zoomBox.innerHTML='<img alt="">';
+document.body.appendChild(zoomBox);
+const bigger=u=>!u?u:u.replace(/\/(\d{2,4})px-/,'/640px-').replace(/\/medium\.(jpe?g|png)/i,'/large.$1');
+let zoomFor=null;
+function hideZoom(){ zoomBox.style.display='none'; zoomFor=null; }
+function showZoom(imgEl){
+  if(!imgEl.getAttribute('src')) return;
+  zoomFor=imgEl;
+  const im=zoomBox.querySelector('img');
+  im.src=imgEl.src;                       // sofort: bereits geladenes Vorschaubild
+  const r=imgEl.getBoundingClientRect(), W=360;
+  zoomBox.style.width=W+'px';
+  zoomBox.style.left=Math.max(8, r.left-W-16)+'px';
+  zoomBox.style.top=Math.min(Math.max(8, r.top-60), Math.max(8, window.innerHeight-330))+'px';
+  zoomBox.style.display='block';
+  const big=imgEl.dataset.big;            // danach: hochauflösende Fassung nachladen
+  if(big && big!==imgEl.src){
+    const pre=new Image();
+    pre.onload=()=>{ if(zoomFor===imgEl) im.src=big; };
+    pre.src=big;
+  }
+}
+panel.addEventListener('mouseover',e=>{ const t=e.target.closest('img.spimg'); if(t) showZoom(t); });
+panel.addEventListener('mouseout',e=>{ if(e.target.closest('img.spimg')) hideZoom(); });
+panel.addEventListener('scroll',hideZoom,{passive:true});
+
+function tabBar(active){
+  return `<div class="tabs">${Object.entries(TABS).map(([k,v])=>
+    `<button class="tab${k===active?' on':''}" data-tab="${k}">${v.label}</button>`).join('')}</div>`;
+}
+
+async function openSpecies(feature, tab){
+  curFeature=feature; curTab=tab||curTab||'threat';
+  const p=feature.properties, m=meta(p.desig_eng), token=++openToken, t=curTab;
+  panel.classList.add('open'); hideZoom(); setTimeout(()=>map.invalidateSize(),200);
+  panel.innerHTML=`<div class="ph"><button id="close" title="Schließen">×</button>
+      <h3>${esc(p.name||'ohne Namen')}</h3>
+      <div class="pmeta"><span class="badge" style="background:${m.c}">${m.de}</span>
+        ${p.rep_area?' · '+fmtN(p.rep_area)+' km²':''}${nr(p.status_yr)?' · seit '+p.status_yr:''}</div>
+      ${tabBar(t)}</div>
+    <div class="spin">Artnachweise werden aus GBIF geladen …</div>`;
+  panel.querySelector('#close').onclick=closePanel;
+  panel.querySelectorAll('.tab').forEach(b=>b.onclick=()=>openSpecies(curFeature,b.dataset.tab));
+  try{
+    const d=await speciesFor(feature,t);
+    if(token!==openToken) return;
+    const spatial=d.mode==='polygon'?'exakte Schutzgebietsgrenze':'umschließendes Rechteck (Grenze für die Abfrage zu komplex) – Randtreffer möglich';
+    if(!d.animals.length && !d.plants.length){
+      panel.querySelector('.spin').outerHTML=
+        `<div class="modebar"><b>${TABS[t].label}</b> – ${TABS[t].hint}</div>
+         <div class="spin">In GBIF liegen für dieses Gebiet keine passenden georeferenzierten Nachweise vor.
+         ${t!=='common'?'Der Reiter <b>Häufig</b> zeigt womöglich Treffer.':''}</div>${creditBlock(d)}`;
+      return;
+    }
+    panel.querySelector('.spin').outerHTML=`
+      <div class="modebar"><b>${TABS[t].label}</b> – ${TABS[t].hint}<br>Räumlicher Bezug: ${spatial}.</div>
+      ${d.animals.length?`<div class="grp">Tiere · ${d.animals.length} Arten aus ${fmtN(d.totalA)} Nachweisen</div><div id="an"></div>`:''}
+      ${d.plants.length?`<div class="grp">Pflanzen · ${d.plants.length} Arten aus ${fmtN(d.totalP)} Nachweisen</div><div id="pl"></div>`:''}
+      ${creditBlock(d)}`;
+    const fill=async(arr,hostId)=>{
+      const host=panel.querySelector('#'+hostId); if(!host) return;
+      host.innerHTML=arr.map(s=>spCard(s)).join('');
+      const rich=await Promise.all(arr.map(enrich));
+      if(token!==openToken) return;
+      host.innerHTML=rich.map(s=>spCard(s)).join('');
+    };
+    await Promise.all([fill(d.animals,'an'), fill(d.plants,'pl')]);
+  }catch(e){
+    if(token!==openToken) return;
+    const s=panel.querySelector('.spin');
+    if(s) s.innerHTML='Artnachweise konnten nicht geladen werden.<br><span style="font-size:11px">'+esc(e.message)+'</span>';
+  }
+}
+function creditBlock(d){
+  return `<div class="credit">
+    <b>Datenherkunft der Artenliste</b><br>
+    Nachweise: GBIF.org – Global Biodiversity Information Facility, Occurrence Search, live abgefragt
+    (<a href="https://www.gbif.org/occurrence/search" target="_blank" rel="noopener">gbif.org</a>).
+    Gefährdungsstatus: IUCN Red List of Threatened Species, über das GBIF-Backbone verknüpft.
+    Steckbriefe und Bilder: Wikipedia / Wikimedia Commons (CC BY-SA), ersatzweise Belegfotos aus GBIF mit Angabe von Urheber und Lizenz.<br><br>
+    <b>Was diese Liste ist – und was nicht:</b> Sie zeigt Arten, für die <i>georeferenzierte Nachweise innerhalb des Gebiets</i> in GBIF vorliegen –
+    das ist keine amtliche und keine vollständige Artenliste. Gebiete mit intensiver Feldforschung oder vielen iNaturalist-Beobachtungen
+    erscheinen artenreicher als schlecht erfasste. Umgekehrt fehlen bekannte Arten, wenn zu ihnen keine Koordinaten veröffentlicht sind
+    (bei stark bejagten Arten wird der Fundort teils bewusst zurückgehalten). Anzahl „Nachweise“ = Beobachtungs-/Belegdatensätze, nicht Individuen.<br><br>
+    <b>Reiter „Charismatisch“:</b> gefiltert auf eine im Quelltext offengelegte Liste von GBIF-Familien/Gruppen
+    (Gibbons, Languren, Plumploris, Elefanten, Katzen, Bären, Hornträger, Hirsche, Schuppentiere, Marder/Otter, Schleichkatzen,
+    Nashornvögel, Fasane, Papageien, Störche, Kraniche, Greifvögel, Pittas, Trogone, Bartvögel, Krokodile, Warane, Pythons,
+    sechs Schildkrötenfamilien, Dugong, Delfine, Ritterfalter sowie Orchideen, Kannenpflanzen, Flügelfruchtgewächse, Palmfarne, Rafflesien).
+    Das ist eine <i>redaktionelle Auswahl</i>, keine Kategorie aus einer wissenschaftlichen Datenbank.
+  </div>`;
+}
+
+function buildUI(){
+  const counts={}; records.forEach(r=>counts[r.d]=(counts[r.d]||0)+1);
+  const order=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
+  ['nat','int'].forEach(g=>{
+    const host=document.getElementById(g==='nat'?'cats-nat':'cats-int');
+    host.innerHTML='';
+    order.filter(d=>meta(d).grp===g).forEach(d=>{
+      const m=meta(d);
+      const row=document.createElement('label'); row.className='cat';
+      row.innerHTML=`<input type="checkbox" checked><span class="sw" style="background:${m.c}"></span>
+        <span class="nm">${m.de}<small>${m.vi?m.vi+' · ':''}${d}</small></span><span class="ct">${counts[d]}</span>`;
+      row.querySelector('input').addEventListener('change',e=>{
+        if(e.target.checked){ map.addLayer(groups[d]); row.classList.remove('off'); }
+        else { map.removeLayer(groups[d]); row.classList.add('off'); }
+      });
+      host.appendChild(row);
+    });
+  });
+  document.getElementById('all-on').onclick=()=>document.querySelectorAll('.cat input').forEach(i=>{if(!i.checked)i.click();});
+  document.getElementById('all-off').onclick=()=>document.querySelectorAll('.cat input').forEach(i=>{if(i.checked)i.click();});
+
+  const total=records.length;
+  const area=records.reduce((s,r)=>s+0,0);
+  document.getElementById('s-n').textContent=total;
+  document.getElementById('s-y').textContent='08/2026';
+
+  const q=document.getElementById('q'), hits=document.getElementById('hits');
+  const render=()=>{
+    const t=q.value.trim().toLowerCase(); hits.innerHTML='';
+    if(t.length<2) return;
+    records.filter(r=>r.name.toLowerCase().includes(t)).slice(0,40).forEach(r=>{
+      const el=document.createElement('div'); el.className='hit';
+      el.innerHTML=`${r.name}<small>${meta(r.d).de}</small>`;
+      el.onclick=()=>{ if(!map.hasLayer(groups[r.d])) map.addLayer(groups[r.d]);
+        const b=r.layer.getBounds?r.layer.getBounds():null;
+        if(b&&b.isValid()) map.fitBounds(b,{maxZoom:12,padding:[40,40]}); else map.setView(r.layer.getLatLng(),11);
+        openSpecies(r.feature); };
+      hits.appendChild(el);
+    });
+  };
+  q.addEventListener('input',render);
+}
+
+(async()=>{
+  try{
+    const [poly,pts]=await Promise.all([q(1), q(0)]);
+    addFeatures(poly); addFeatures(pts);
+    buildUI(); buildTraffic();
+    const all=L.featureGroup(records.map(r=>r.layer));
+    if(all.getBounds().isValid()) map.fitBounds(all.getBounds(),{padding:[18,18]});
+    const sum=[...poly.features,...pts.features].reduce((s,f)=>s+(+f.properties.rep_area||0),0);
+    document.getElementById('s-a').textContent=Math.round(sum).toLocaleString('de-DE');
+    document.getElementById('method').innerHTML=
+      `Beim Öffnen wurden <b>${records.length} Schutzgebiete</b> (${poly.features.length} mit Flächengeometrie, ${pts.features.length} nur als Punkt) direkt aus der WDPA geladen. `+
+      `Die Summe von ${Math.round(sum).toLocaleString('de-DE')} km² ist eine reine Addition der gemeldeten Flächen und <b>enthält Mehrfachzählungen</b> durch überlappende Ausweisungen.`;
+    document.getElementById('ovl').remove();
+  }catch(e){
+    document.getElementById('ovl').innerHTML=
+      '<div><b>Daten konnten nicht geladen werden.</b><br><br>'+
+      'Die Karte bezieht die Schutzgebiete live von <span style="color:#4db6ac">services5.arcgis.com</span> (UNEP-WCMC).<br>'+
+      'Bitte Internetverbindung prüfen und die Seite neu laden.<br><br><span style="font-size:11px">Fehler: '+e.message+'</span></div>';
+  }
+})();
+</script>
+</body>
+</html>
