@@ -145,13 +145,13 @@
     <div id="hits"></div>
     <h2 style="padding-left:16px">Quellen und Grenzen</h2>
     <div class="src">
-      <p><b>Flächen, Orte, Straßen:</b> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende (ODbL), live über die Overpass-API. Geladene Daten werden auf diesem Gerät gespeichert und nach 14 Tagen erneuert.</p>
+      <p><b>Flächen, Orte, Straßen:</b> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende (ODbL), wöchentlich automatisch abgerufen und mit der Karte ausgeliefert. Das Gerät speichert sie und erneuert sie nach 14 Tagen.</p>
       <p><b>Schutzgebiete:</b> UNEP-WCMC &amp; IUCN, <a href="https://www.protectedplanet.net/country/VNM" target="_blank" rel="noopener">World Database on Protected Areas</a>, live abgefragt, Ausschnitt um Hanoi.</p>
       <p><b>Arten:</b> <a href="https://www.gbif.org/occurrence/search" target="_blank" rel="noopener">GBIF</a>, IUCN-Status über GBIF, Texte und Bilder aus Wikipedia/Wikimedia.</p>
       <p><b>Birdwatching:</b> Dichtekarte und Reiter „Vögel“ aus GBIF (Klasse Aves). Sie zeigen, wo und was gemeldet wurde, über alle Jahre und Jahreszeiten, also keine aktuellen Sichtungen. Viele Meldungen bedeuten auch: viele Beobachter. Aktuelle Sichtungen: <a href="https://ebird.org/region/VN-HN" target="_blank" rel="noopener">eBird, Region Hanoi</a>.</p>
       <p><b>Grenzen, bitte beachten:</b></p>
       <p>• <b>Ruhe ist hier nicht gemessen.</b> Die Karte zeigt Luftlinien zu Hauptstraßen. Es gibt keine Lärmdaten; Baustellen, Märkte und Motorroller in kleinen Gassen erfasst sie nicht.</p>
-      <p>• Die markierten ruhigen Viertel stammen aus einer Web-Recherche vom Oktober 2026 und sind eine Einschätzung. Sie erscheinen nur, wenn OpenStreetMap den Namen führt.</p>
+      <p>• Die markierten ruhigen Viertel stammen aus einer Web-Recherche vom Oktober 2026 und sind eine Einschätzung. Ihre Lage ist ungefähr.</p>
       <p>• OpenStreetMap ist freiwillig gepflegt und nicht vollständig. Öffnungszeiten und Telefonnummern können veraltet sein; bei Krankenhäusern und Behörden vorher prüfen.</p>
       <p>• Hanois Verwaltung wurde 2025 umgebaut. Namen und Grenzen können im Datenbestand noch der alten Gliederung folgen.</p>
       <p>• Artenlisten sind Nachweise aus GBIF, keine amtlichen Listen. Viel beobachtete Parks wirken artenreicher.</p>
@@ -170,8 +170,9 @@ const map=L.map('map',{zoomControl:true,preferCanvas:true}).setView([21.03,105.8
 const osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap-Mitwirkende'});
 const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Esri, Maxar, Earthstar Geographics'});
 const light=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16,attribution:'Esri, HERE, Garmin, © OpenStreetMap-Mitwirkende'});
-osm.addTo(map);
-L.control.layers({'OpenStreetMap':osm,'Hell (Esri Gray)':light,'Satellit (Esri)':sat},null,{position:'topright'}).addTo(map);
+const strasse=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Esri, HERE, Garmin, © OpenStreetMap-Mitwirkende'});
+strasse.addTo(map);
+L.control.layers({'Stadtplan (Esri)':strasse,'OpenStreetMap':osm,'Hell (Esri Gray)':light,'Satellit (Esri)':sat},null,{position:'topright'}).addTo(map);
 
 /* Kategorien: k = Schlüssel, an = beim Start sichtbar */
 const KAT={
@@ -182,13 +183,14 @@ const KAT={
  wdpa:{c:'#ff7043',de:'Gemeldetes Schutzgebiet (WDPA)',g:'wdpa',an:1},
  ruhig:{c:'#7ff0dc',de:'Ruhige Viertel (Recherche Okt. 2026)',g:'stadt',an:1},
  viertel:{c:'#cfd8dc',de:'Viertel und Ortsteile',g:'stadt',an:1},
- strasse:{c:'#e53935',de:'Hauptstraßen',g:'stadt',an:1},
+ strasse:{c:'#e53935',de:'Hauptstraßen',g:'stadt',an:0},
  verkehr:{c:'#7ec8ff',de:'Bahnhöfe, Metro, Busbahnhöfe, Flugplätze',g:'stadt',an:0},
  bahn:{c:'#c9a227',de:'Schienennetz (OpenRailwayMap)',g:'stadt',an:0},
  sehen:{c:'#ec407a',de:'Sehenswertes',g:'orte',an:1}, markt:{c:'#ffb74d',de:'Märkte und Supermärkte',g:'orte',an:0},
  gesund:{c:'#ef5350',de:'Krankenhäuser und Kliniken',g:'orte',an:0}, amt:{c:'#ab47bc',de:'Botschaften und Behörden',g:'orte',an:0}
 };
-const RUHIG=[['Trúc Bạch','Gesamtempfehlung der Recherche'],['Ba Đình','Zitadellenbereich'],['Quảng An','Halbinsel am Westsee'],['Ngọc Thụy','Am Flussufer in Long Biên']];
+/* Lage = ein Ort dieses Viertels aus OpenStreetMap, also nur ungefähr die Mitte */
+const RUHIG=[['Trúc Bạch','Gesamtempfehlung der Recherche',21.045963,105.841902],['Ba Đình','Zitadellenbereich',21.039532,105.836423],['Quảng An','Halbinsel am Westsee',21.067902,105.82728],['Ngọc Thụy','Am Flussufer in Long Biên',21.058537,105.870439]];
 const groups={}, records=[], zaehler={}, strassen=[], naturPunkte=[], orte=[];
 Object.keys(KAT).forEach(k=>{groups[k]=L.layerGroup(); zaehler[k]=0; if(KAT[k].an) groups[k].addTo(map);});
 groups.voegel=L.tileLayer('https://api.gbif.org/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?srs=EPSG:3857&taxonKey=212&style=purpleYellow.point',{maxZoom:19,opacity:.85,attribution:'Vogelnachweise: GBIF.org'});
@@ -223,6 +225,13 @@ async function overpass(abfrage){
   throw fehler||new Error('Overpass nicht erreichbar');
 }
 
+/* Zuerst die mit der Karte ausgelieferte Datei, nur ersatzweise die Overpass-Server */
+async function osmDaten(key,abfrage){
+  for(const u of [`daten/${key}.json`,`https://raw.githubusercontent.com/kidkodama/schutzgebiete-vietnam/main/hanoi/daten/${key}.json`]){
+    try{ const {r,text}=await mitFrist(u,{}); if(r.ok){ const j=JSON.parse(text); if(j.elements&&j.elements.length) return j; } }catch(e){}
+  }
+  return overpass(abfrage);
+}
 /* OSM-Geometrie → GeoJSON */
 function ringe(members){
   const teile=members.filter(m=>m.type==='way'&&m.role!=='inner'&&m.geometry).map(m=>m.geometry.map(p=>[p.lon,p.lat]));
@@ -333,17 +342,17 @@ function fuegeWdpa(gj){
       l.bindTooltip(p.name||'',{sticky:true,direction:'top'}); l.on('click',ev=>{L.DomEvent.stopPropagation(ev); openSpecies(f);});
       l.addTo(groups.wdpa); records.push({name:p.name||'',d:'wdpa',layer:l,feature:f}); zaehler.wdpa++; }});
 }
+function viertelMarke(n,la,lo,hinweis){
+  const k=hinweis?'ruhig':'viertel';
+  const m=L.marker([la,lo],{icon:L.divIcon({className:'place'+(hinweis?' ruhig':''),html:esc(n),iconSize:[0,0]}),zIndexOffset:hinweis?500:0});
+  m.bindPopup(()=>`<div class="pt">${esc(n)}</div>${hinweis?`<div class="pd">${esc(hinweis)} · Einschätzung aus der Recherche, keine Messung. Lage ungefähr.</div>`:''}${abstandTabelle(la,lo)}${links(la,lo)}`,{maxWidth:320});
+  m.addTo(groups[k]); records.push({name:n,d:k,layer:m}); zaehler[k]++;
+}
 function fuegeOrt(e){
   const t=e.tags||{}, n=name(t); if(!n) return; const la=e.lat??e.center?.lat, lo=e.lon??e.center?.lon; if(la==null||lo==null) return;
-  if(t.place){
-    const treffer=RUHIG.find(r=>n.normalize('NFC').toLowerCase().includes(r[0].normalize('NFC').toLowerCase()));
-    const k=treffer?'ruhig':'viertel';
-    const m=L.marker([la,lo],{icon:L.divIcon({className:'place'+(treffer?' ruhig':''),html:esc(n),iconSize:[0,0]}),zIndexOffset:treffer?500:0});
-    m.bindPopup(()=>`<div class="pt">${esc(n)}</div>${treffer?`<div class="pd">${esc(treffer[1])} · Einschätzung aus der Recherche, keine Messung</div>`:''}${abstandTabelle(la,lo)}${links(la,lo)}`,{maxWidth:320});
-    m.addTo(groups[k]); records.push({name:n,d:k,layer:m}); zaehler[k]++; return;
-  }
+  if(/^(suburb|quarter|neighbourhood)$/.test(t.place||'')){ if(RUHIG.some(r=>r[0]===n)) return; viertelMarke(n,la,lo,null); return; }
   const k=ortArt(t), c=KAT[k].c;
-  const m=L.circleMarker([la,lo],{radius:k==='sehen'?6:5,color:'#0b1013',weight:1,fillColor:c,fillOpacity:.95,bubblingMouseEvents:false});
+  const m=L.circleMarker([la,lo],{radius:k==='sehen'?5:4,color:'#0b1013',weight:1,fillColor:c,fillOpacity:.95,bubblingMouseEvents:false});
   m.bindTooltip(n,{direction:'top'}); m.bindPopup(()=>ortPopup(t,la,lo,k),{maxWidth:330});
   m.on('popupopen',async ev=>{ const box=ev.popup.getElement()?.querySelector('.wiki'); if(!box||!(t.wikidata||t.wikipedia)) return;
     box.textContent='Wikipedia wird geladen …'; const w=await wikiFuer(t); if(!w){box.textContent='';return;}
@@ -373,7 +382,7 @@ function suche(){
 }
 
 async function ladeNatur(){ setz('st-natur','Lädt aus OpenStreetMap …');
-  try{ const r=await laden('natur',()=>overpass(`(nwr["leisure"~"^(park|garden|nature_reserve)$"]["name"](${BB_GANZ});nwr["tourism"="zoo"]["name"](${BB_GANZ});nwr["natural"="water"]["name"](${BB_GANZ}););out geom;`));
+  try{ const r=await laden('natur',()=>osmDaten('natur',`(nwr["leisure"~"^(park|garden|nature_reserve)$"]["name"](${BB_GANZ});nwr["tourism"="zoo"]["name"](${BB_GANZ});nwr["natural"="water"]["name"](${BB_GANZ}););out geom;`));
     r.daten.elements.forEach(e=>flaeche(e,naturArt(e.tags||{}))); zeige();
     setz('st-natur',statusText(r,r.daten.elements.length,'Einträge'));
   }catch(e){ setz('st-natur','Konnte nicht geladen werden ('+e.message+'). Seite später neu laden.'); } }
@@ -384,7 +393,7 @@ async function ladeWdpa(){ setz('st-wdpa','Lädt aus der WDPA …');
     fuegeWdpa(r.daten); zeige(); setz('st-wdpa',statusText(r,r.daten.features.length,'Gebiete'));
   }catch(e){ setz('st-wdpa','Konnte nicht geladen werden ('+e.message+').'); } }
 async function ladeStrassen(){ setz('st-stadt','Straßen laden …');
-  try{ const r=await laden('strassen',()=>overpass(`way["highway"~"^(motorway|trunk|primary)$"](${BB_KERN});out tags geom;`));
+  try{ const r=await laden('strassen',()=>osmDaten('strassen',`way["highway"~"^(motorway|trunk|primary)$"](${BB_KERN});out tags geom;`));
     r.daten.elements.forEach(e=>{ if(!e.geometry||e.geometry.length<2) return; const p=e.geometry.map(q=>[q.lat,q.lon]); const n=e.tags?.name||e.tags?.ref||'';
       strassen.push({p,n}); L.polyline(p,{color:KAT.strasse.c,weight:2,opacity:.7,interactive:false}).addTo(groups.strasse); zaehler.strasse++; });
     zeige(); setz('st-stadt',statusText(r,r.daten.elements.length,'Straßenabschnitte'));
@@ -398,7 +407,7 @@ async function ladeOrte(){
   const zeilen=[];
   for(const [titel,key,abfrage] of ORTTEILE){
     setz('st-orte',[...zeilen,titel+' lädt …'].join(' · '));
-    try{ const r=await laden(key,()=>overpass(abfrage)); r.daten.elements.forEach(fuegeOrt); zeige(); zeilen.push(`${titel}: ${r.daten.elements.length}${r.alt?' (vom Gerät)':''}`); }
+    try{ const r=await laden(key,()=>osmDaten(key,abfrage)); r.daten.elements.forEach(fuegeOrt); zeige(); zeilen.push(`${titel}: ${r.daten.elements.length}${r.alt?' (vom Gerät)':''}`); }
     catch(e){ zeilen.push(`${titel}: nicht geladen (${e.message})`); }
     setz('st-orte',zeilen.join(' · '));
   }
@@ -682,8 +691,9 @@ function creditBlock(d){
   </div>`;
 }
 
+RUHIG.forEach(r=>viertelMarke(r[0],r[2],r[3],r[1]));
 zeige(); suche();
-const viertelSicht=()=>map.getContainer().classList.toggle('fern',map.getZoom()<13);
+const viertelSicht=()=>map.getContainer().classList.toggle('fern',map.getZoom()<14);
 map.on('zoomend',viertelSicht); viertelSicht();
 /* Jeder Server hat eine Frist: Hängt einer, läuft der Rest trotzdem weiter */
 ladeWdpa();
