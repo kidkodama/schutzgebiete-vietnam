@@ -77,4 +77,23 @@ for sprache in ("de", "en", "vi"):
 arten.sort(key=lambda a: -a["n"])
 with open("hanoi/daten/voegel.json", "w", encoding="utf-8") as f:
     json.dump(dict(raum=gid or "rechteck", nachweise=antw["count"], stand=time.strftime("%Y-%m-%d"), arten=arten), f, ensure_ascii=False, separators=(",", ":"))
+# Alle Sichtungen, zu Stellen von rund 200 m zusammengefasst
+def seite(start):
+    return hole("/occurrence/search", classKey=212, hasCoordinate="true", hasGeospatialIssue="false", occurrenceStatus="PRESENT", **raum, limit=300, offset=start).get("results", [])
+with ThreadPoolExecutor(4) as pool: seiten = list(pool.map(seite, range(0, antw["count"] + 300, 300)))
+stellen = {}; geholt = 0
+for o in (x for s in seiten for x in s):
+    la, lo, k = o.get("decimalLatitude"), o.get("decimalLongitude"), o.get("speciesKey")
+    if la is None or lo is None or not k: continue
+    geholt += 1
+    s = stellen.setdefault((round(la / .002), round(lo / .002)), dict(la=[], lo=[], arten=collections.Counter(), quellen=collections.Counter(), zuletzt={}))
+    s["la"].append(la); s["lo"].append(lo); s["arten"][k] += 1
+    s["quellen"][o.get("datasetName") or o.get("institutionCode") or "ohne Namen"] += 1
+    d = (o.get("eventDate") or "")[:10]
+    if d > s["zuletzt"].get(k, ""): s["zuletzt"][k] = d
+aus = [dict(la=round(sum(s["la"]) / len(s["la"]), 5), lo=round(sum(s["lo"]) / len(s["lo"]), 5), n=len(s["la"]),
+            a=[[k, z, s["zuletzt"].get(k, "")] for k, z in s["arten"].most_common()], q=[[q, z] for q, z in s["quellen"].most_common(5)]) for s in stellen.values()]
+with open("hanoi/daten/sichtungen.json", "w", encoding="utf-8") as f:
+    json.dump(dict(stand=time.strftime("%Y-%m-%d"), sichtungen=geholt, gesamt=antw["count"], stellen=aus), f, ensure_ascii=False, separators=(",", ":"))
+print("Sichtungen", geholt, "von", antw["count"], "Stellen", len(aus))
 print("Arten", len(arten), "mit de", sum(1 for a in arten if a["de"]), "vi", sum(1 for a in arten if a["vi"]))
