@@ -207,11 +207,16 @@ async function laden(key,holen){
   try{ const d=await holen(); await inSpeicher(key,d); return {daten:d}; }
   catch(e){ if(alt) return {daten:alt.daten,alt:alt.zeit,veraltet:1}; throw e; }
 }
+const WARTEZEIT=60000;
+async function mitFrist(u,opt){ const ab=new AbortController(); const uhr=setTimeout(()=>ab.abort(),WARTEZEIT);
+  try{ const r=await fetch(u,{...opt,signal:ab.signal}); const text=await r.text(); return {r,text}; }
+  catch(e){ throw e.name==='AbortError'?new Error('Server antwortet nicht'):e; }
+  finally{ clearTimeout(uhr); } }
 async function overpass(abfrage){
   let fehler;
   for(const u of OVERPASS){
-    try{ const r=await fetch(u,{method:'POST',body:'data='+encodeURIComponent('[out:json][timeout:120];'+abfrage),headers:{'Content-Type':'application/x-www-form-urlencoded'}});
-      const t=await r.text(); if(!t.trim().startsWith('{')){fehler=new Error('Server ausgelastet');continue;}
+    try{ const {text:t}=await mitFrist(u,{method:'POST',body:'data='+encodeURIComponent('[out:json][timeout:120];'+abfrage),headers:{'Content-Type':'application/x-www-form-urlencoded'}});
+      if(!t.trim().startsWith('{')){fehler=new Error('Server ausgelastet');continue;}
       return JSON.parse(t);
     }catch(e){fehler=e;}
   }
@@ -374,7 +379,7 @@ async function ladeNatur(){ setz('st-natur','Lädt aus OpenStreetMap …');
   }catch(e){ setz('st-natur','Konnte nicht geladen werden ('+e.message+'). Seite später neu laden.'); } }
 async function ladeWdpa(){ setz('st-wdpa','Lädt aus der WDPA …');
   try{ const hol=async l=>{ const u=`${SERVICE}/${l}/query?where=${encodeURIComponent("iso3='VNM'")}&geometry=105.0,20.3,106.3,21.6&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&geometryPrecision=5${l===1?'&maxAllowableOffset=0.002':''}&resultRecordCount=500&f=geojson`;
-      const a=await fetch(u); if(!a.ok) throw new Error('HTTP '+a.status); const j=await a.json(); if(!j.features) throw new Error(j.error?.message||'Antwort ohne Datensätze'); return j; };
+      const {r:a,text}=await mitFrist(u,{}); if(!a.ok) throw new Error('HTTP '+a.status); const j=JSON.parse(text); if(!j.features) throw new Error(j.error?.message||'Antwort ohne Datensätze'); return j; };
     const r=await laden('wdpa',async()=>{const [a,b]=await Promise.all([hol(1),hol(0)]);return {type:'FeatureCollection',features:[...a.features,...b.features]};});
     fuegeWdpa(r.daten); zeige(); setz('st-wdpa',statusText(r,r.daten.features.length,'Gebiete'));
   }catch(e){ setz('st-wdpa','Konnte nicht geladen werden ('+e.message+').'); } }
@@ -384,10 +389,21 @@ async function ladeStrassen(){ setz('st-stadt','Straßen laden …');
       strassen.push({p,n}); L.polyline(p,{color:KAT.strasse.c,weight:2,opacity:.7,interactive:false}).addTo(groups.strasse); zaehler.strasse++; });
     zeige(); setz('st-stadt',statusText(r,r.daten.elements.length,'Straßenabschnitte'));
   }catch(e){ setz('st-stadt','Straßen konnten nicht geladen werden ('+e.message+').'); } }
-async function ladeOrte(){ setz('st-orte','Lädt aus OpenStreetMap …');
-  try{ const r=await laden('orte',()=>overpass(`(nwr["tourism"~"^(museum|attraction|viewpoint|gallery)$"]["name"](${BB_GANZ});nwr["historic"]["name"](${BB_GANZ});nwr["amenity"="place_of_worship"]["name"]["wikidata"](${BB_GANZ});nwr["amenity"~"^(hospital|clinic|marketplace|embassy|bus_station)$"]["name"](${BB_GANZ});nwr["shop"~"^(supermarket|mall)$"]["name"](${BB_GANZ});nwr["office"~"^(diplomatic|government)$"]["name"](${BB_GANZ});nwr["railway"="station"]["name"](${BB_GANZ});nwr["aeroway"="aerodrome"]["name"](${BB_GANZ});node["place"~"^(suburb|quarter|neighbourhood)$"]["name"](${BB_KERN}););out tags center;`));
-    r.daten.elements.forEach(fuegeOrt); zeige(); setz('st-orte',statusText(r,r.daten.elements.length,'Orte'));
-  }catch(e){ setz('st-orte','Konnte nicht geladen werden ('+e.message+'). Seite später neu laden.'); } }
+const ORTTEILE=[
+ ['Sehenswertes','orte-sehen',`(nwr["tourism"~"^(museum|attraction|viewpoint|gallery)$"]["name"](${BB_GANZ});nwr["historic"]["name"](${BB_GANZ});nwr["amenity"="place_of_worship"]["name"]["wikidata"](${BB_GANZ}););out tags center;`],
+ ['Alltag','orte-alltag',`(nwr["amenity"~"^(hospital|clinic|marketplace|embassy)$"]["name"](${BB_GANZ});nwr["shop"~"^(supermarket|mall)$"]["name"](${BB_GANZ});nwr["office"~"^(diplomatic|government)$"]["name"](${BB_GANZ}););out tags center;`],
+ ['Viertel und Verkehr','orte-stadt',`(node["place"~"^(suburb|quarter|neighbourhood)$"]["name"](${BB_KERN});nwr["railway"="station"]["name"](${BB_GANZ});nwr["amenity"="bus_station"]["name"](${BB_GANZ});nwr["aeroway"="aerodrome"]["name"](${BB_GANZ}););out tags center;`]
+];
+async function ladeOrte(){
+  const zeilen=[];
+  for(const [titel,key,abfrage] of ORTTEILE){
+    setz('st-orte',[...zeilen,titel+' lädt …'].join(' · '));
+    try{ const r=await laden(key,()=>overpass(abfrage)); r.daten.elements.forEach(fuegeOrt); zeige(); zeilen.push(`${titel}: ${r.daten.elements.length}${r.alt?' (vom Gerät)':''}`); }
+    catch(e){ zeilen.push(`${titel}: nicht geladen (${e.message})`); }
+    setz('st-orte',zeilen.join(' · '));
+  }
+  if(zeilen.some(z=>z.includes('nicht geladen'))) setz('st-orte',zeilen.join(' · ')+'. Seite neu laden: Fertiges bleibt gespeichert.');
+}
 
 /* ============================================================
    ARTEN – Nachweise aus GBIF, IUCN-Status, Steckbrief/Bild aus
@@ -669,9 +685,10 @@ function creditBlock(d){
 zeige(); suche();
 const viertelSicht=()=>map.getContainer().classList.toggle('fern',map.getZoom()<13);
 map.on('zoomend',viertelSicht); viertelSicht();
-/* nacheinander statt parallel: Overpass weist parallele Abfragen oft ab */
+/* Jeder Server hat eine Frist: Hängt einer, läuft der Rest trotzdem weiter */
 ladeWdpa();
-(async()=>{ await ladeNatur(); await ladeOrte(); await ladeStrassen(); })();
+ladeOrte();
+(async()=>{ await ladeNatur(); await ladeStrassen(); })();
 </script>
 </body>
 </html>
