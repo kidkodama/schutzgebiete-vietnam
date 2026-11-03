@@ -13,9 +13,15 @@ const URL_ = 'https://kidkodama.github.io/schutzgebiete-vietnam/hanoi/?t=' + Dat
     const tipp = async s => { await p.locator(s).first().click({ timeout: 15000 }); };
     await p.goto(URL_, { timeout: 60000 }); await p.waitForTimeout(6000);
     console.log('Status', await p.textContent('#st-natur'), '|', await p.textContent('#st-wdpa'), '|', await p.textContent('#st-orte'));
-    await p.locator('#g-natur label', { hasText: 'Birdwatching' }).click({ timeout: 15000 }); await p.waitForTimeout(7000);
+    await p.waitForTimeout(3000);
+    console.log('Sichtungen', await p.textContent('#st-voegel'), JSON.stringify(await p.evaluate(() => ({ auf: map.hasLayer(groups.voegel), n: groups.voegel.getLayers().length }))));
+    const pkt = await p.evaluate(() => { let best; groups.voegel.eachLayer(l => { const q = map.latLngToContainerPoint(l.getLatLng()), s = map.getSize(); if (q.x > 60 && q.y > 60 && q.x < s.x - 60 && q.y < s.y - 60 && (!best || l.getRadius() > best.getRadius())) best = l; }); const q = map.latLngToContainerPoint(best.getLatLng()), a = map.getContainer().getBoundingClientRect(); return [a.left + q.x, a.top + q.y]; });
+    await p.screenshot({ path: `test-bilder/${nm}-0-sichtungen.png` });
+    await p.mouse.click(pkt[0], pkt[1]); await p.waitForTimeout(700);
+    console.log('Popup', (await p.locator('.leaflet-popup-content').textContent().catch(() => 'KEIN POPUP')).replace(/\s+/g, ' ').slice(0, 300));
     await p.screenshot({ path: `test-bilder/${nm}-1-felder.png` });
-    await p.locator('#g-natur label', { hasText: 'Birdwatching' }).click(); 
+    await p.evaluate(() => { map.closePopup(); });
+    await p.screenshot({ path: `test-bilder/${nm}-1-felder.png` });
     await tipp('#ansichten .tab[data-a=voegel]'); await p.waitForSelector('#v-liste details', { timeout: 30000 });
     console.log('Liste', await p.textContent('#v-sub'));
     await p.fill('#v-q', 'eisvogel'); await p.waitForTimeout(300); await tipp('.va'); await p.waitForSelector('.vk', { timeout: 30000 });
