@@ -148,6 +148,7 @@
       <p><b>Flächen, Orte, Straßen:</b> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende (ODbL), live über die Overpass-API. Geladene Daten werden auf diesem Gerät gespeichert und nach 14 Tagen erneuert.</p>
       <p><b>Schutzgebiete:</b> UNEP-WCMC &amp; IUCN, <a href="https://www.protectedplanet.net/country/VNM" target="_blank" rel="noopener">World Database on Protected Areas</a>, live abgefragt, Ausschnitt um Hanoi.</p>
       <p><b>Arten:</b> <a href="https://www.gbif.org/occurrence/search" target="_blank" rel="noopener">GBIF</a>, IUCN-Status über GBIF, Texte und Bilder aus Wikipedia/Wikimedia.</p>
+      <p><b>Birdwatching:</b> Dichtekarte und Reiter „Vögel“ aus GBIF (Klasse Aves). Sie zeigen, wo und was gemeldet wurde, über alle Jahre und Jahreszeiten, also keine aktuellen Sichtungen. Viele Meldungen bedeuten auch: viele Beobachter. Aktuelle Sichtungen: <a href="https://ebird.org/region/VN-HN" target="_blank" rel="noopener">eBird, Region Hanoi</a>.</p>
       <p><b>Grenzen, bitte beachten:</b></p>
       <p>• <b>Ruhe ist hier nicht gemessen.</b> Die Karte zeigt Luftlinien zu Hauptstraßen. Es gibt keine Lärmdaten; Baustellen, Märkte und Motorroller in kleinen Gassen erfasst sie nicht.</p>
       <p>• Die markierten ruhigen Viertel stammen aus einer Web-Recherche vom Oktober 2026 und sind eine Einschätzung. Sie erscheinen nur, wenn OpenStreetMap den Namen führt.</p>
@@ -177,6 +178,7 @@ const KAT={
  park:{c:'#7cc043',de:'Park',g:'natur',an:1}, garten:{c:'#12833f',de:'Garten / Botanischer Garten',g:'natur',an:1},
  wasser:{c:'#2196f3',de:'See / Gewässer',g:'natur',an:1}, zoo:{c:'#d3a017',de:'Zoo',g:'natur',an:1},
  reservat:{c:'#26c6da',de:'Naturreservat (OpenStreetMap)',g:'natur',an:1},
+ voegel:{c:'#b388ff',de:'Birdwatching: Dichte der Vogelnachweise',g:'natur',an:0},
  wdpa:{c:'#ff7043',de:'Gemeldetes Schutzgebiet (WDPA)',g:'wdpa',an:1},
  ruhig:{c:'#7ff0dc',de:'Ruhige Viertel (Recherche Okt. 2026)',g:'stadt',an:1},
  viertel:{c:'#cfd8dc',de:'Viertel und Ortsteile',g:'stadt',an:1},
@@ -189,6 +191,7 @@ const KAT={
 const RUHIG=[['Trúc Bạch','Gesamtempfehlung der Recherche'],['Ba Đình','Zitadellenbereich'],['Quảng An','Halbinsel am Westsee'],['Ngọc Thụy','Am Flussufer in Long Biên']];
 const groups={}, records=[], zaehler={}, strassen=[], naturPunkte=[], orte=[];
 Object.keys(KAT).forEach(k=>{groups[k]=L.layerGroup(); zaehler[k]=0; if(KAT[k].an) groups[k].addTo(map);});
+groups.voegel=L.tileLayer('https://api.gbif.org/v2/map/occurrence/density/{z}/{x}/{y}@1x.png?srs=EPSG:3857&taxonKey=212&style=purpleYellow.point',{maxZoom:19,opacity:.85,attribution:'Vogelnachweise: GBIF.org'});
 groups.bahn=L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',{maxZoom:19,opacity:.9,attribution:'Bahndaten: OpenRailwayMap (ODbL)'});
 const fmtN=n=>(n==null||isNaN(n))?'–':Number(n).toLocaleString('de-DE',{maximumFractionDigits:2});
 const nr=v=>(v==null||v===''||v==='Not Reported'||v==='Not Applicable')?null:v;
@@ -259,7 +262,7 @@ function zeige(){
   const nat=['park','garten','wasser','zoo','reservat'].reduce((s,k)=>s+zaehler[k],0);
   setz('s-n',nat||'–'); setz('s-a',zaehler.wdpa||'–');
   const o=['sehen','markt','gesund','amt','verkehr','viertel','ruhig'].reduce((s,k)=>s+zaehler[k],0); setz('s-y',o||'–');
-  Object.keys(KAT).forEach(k=>{const e=document.getElementById('ct-'+k); if(e) e.textContent=zaehler[k]||(k==='bahn'?'':'–');});
+  Object.keys(KAT).forEach(k=>{const e=document.getElementById('ct-'+k); if(e) e.textContent=zaehler[k]||(k==='bahn'||k==='voegel'?'':'–');});
 }
 function links(lat,lon){
   return `<div class="lnk"><a target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}">OpenStreetMap</a><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}">In Google Maps öffnen</a></div>`;
@@ -414,6 +417,7 @@ const CHARIS={
 const TABS={
   threat:{label:'Gefährdet', hint:'Im Gebiet nachgewiesene Arten der IUCN-Kategorien CR, EN und VU, sortiert nach Gefährdungsgrad.'},
   charis:{label:'Charismatisch', hint:'Nachweise aus einer offengelegten Auswahl von Flaggschiff-Gruppen (Primaten, Großsäuger, Nashornvögel, Fasane, Schildkröten, Orchideen u. a.) – unabhängig vom Gefährdungsstatus. Redaktionelle Auswahl, keine Datenbankkategorie.'},
+  voegel:{label:'Vögel', hint:'Im Gebiet am häufigsten gemeldete Vogelarten aus GBIF, über alle Jahre und Jahreszeiten. Das zeigt, was hier vorkommen kann, nicht was gerade zu sehen ist.'},
   common:{label:'Häufig', hint:'Die im Gebiet am häufigsten dokumentierten Arten. Das spiegelt vor allem die Beobachtungsintensität, nicht die tatsächliche Häufigkeit im Gelände.'}
 };
 const IUCN_DE={CR:'vom Aussterben bedroht',EN:'stark gefährdet',VU:'gefährdet',NT:'potenziell gefährdet',LC:'nicht gefährdet',DD:'ungenügende Daten'};
@@ -464,6 +468,7 @@ async function gbifQuery(spatial, kingdomKey, tab){
   const p=new URLSearchParams();
   p.set('limit','300'); p.set('hasCoordinate','true'); p.set('hasGeospatialIssue','false');
   p.set('kingdomKey',kingdomKey); p.set('facet','speciesKey'); p.set('facetLimit','120');
+  if(tab==='voegel') p.set('classKey','212');
   if(tab==='threat') THREAT.forEach(c=>p.append('iucnRedListCategory',c));
   if(tab==='charis') (CHARIS[kingdomKey]||[]).forEach(k=>p.append('taxonKey',k));
   if(spatial.wkt) p.set('geometry',spatial.wkt);
@@ -502,8 +507,8 @@ async function speciesFor(feature, tab){
         return Promise.all([gbifQuery(spatial,1,t), gbifQuery(spatial,6,t)]); } throw e; }
   };
   const [a,p]=await run(tab);
-  const byCount = tab==='common';
-  const res={animals:collapse(a,byCount).slice(0,10), plants:collapse(p,byCount).slice(0,8),
+  const byCount = tab==='common'||tab==='voegel';
+  const res={animals:collapse(a,byCount).slice(0,tab==='voegel'?20:10), plants:collapse(p,byCount).slice(0,8),
              tab, mode, bbox, totalA:a.count||0, totalP:p.count||0};
   cache.set(id,res); return res;
 }
