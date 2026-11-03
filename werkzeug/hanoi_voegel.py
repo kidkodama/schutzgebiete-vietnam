@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Holt alle in GBIF gemeldeten Vogelarten für Hanoi nach hanoi/daten/voegel.json.
 Scheitert der Abruf, bleibt die vorhandene Datei stehen."""
-import json, sys, time, urllib.parse, urllib.request
+import collections, json, re, sys, time, urllib.error, urllib.parse, urllib.request
 from concurrent.futures import ThreadPoolExecutor
 API = "https://api.gbif.org/v1"
 def hole(pfad, **par):
@@ -30,17 +30,35 @@ antw = hole("/occurrence/search", **GRUND, **raum, facet="speciesKey", facetLimi
 zahlen = antw["facets"][0]["counts"] if antw["facets"] else []
 print("Nachweise", antw["count"], "Artschlüssel", len(zahlen))
 if not zahlen: sys.exit("ABBRUCH: keine Arten, Datei bleibt unverändert")
+def wiki(sprache, sci):
+    """Artikeltitel zum wissenschaftlichen Namen. Wikipedia leitet ihn auf den üblichen Namen um."""
+    u = f"https://{sprache}.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(sci.replace(" ", "_")) + "?redirect=true"
+    for v in range(4):
+        try:
+            q = urllib.request.Request(u, headers={"User-Agent": "hanoi-karte (github.com/kidkodama/schutzgebiete-vietnam)"})
+            j = json.load(urllib.request.urlopen(q, timeout=60))
+            if j.get("type") != "standard": return None
+            ti = re.sub(r"\s*\(.*\)$", "", j.get("title") or "").strip()
+            return None if not ti or ti.lower() == sci.lower() else ti
+        except urllib.error.HTTPError as e:
+            if e.code == 404: return None
+            time.sleep(4 * (v + 1))
+        except Exception:
+            time.sleep(4 * (v + 1))
+    return None
 def art(c):
     k = int(c["name"]); s = hole(f"/species/{k}") or {}
     if s.get("rank") != "SPECIES": return None
     vn = (hole(f"/species/{k}/vernacularNames", limit=200) or {}).get("results", [])
     def nm(sprachen):
-        for v in vn:
-            if v.get("language") in sprachen and v.get("vernacularName"): return v["vernacularName"]
+        """GBIF enthält auch falsche Namen (z. B. Eisvogel als Blauspecht): nur, was mindestens zwei Quellen gleich nennen."""
+        z = collections.Counter(v["vernacularName"].strip() for v in vn if v.get("language") in sprachen and v.get("vernacularName"))
+        return next((n for n, a in z.most_common(1) if a >= 2), None)
+    sci = s.get("canonicalName") or s.get("species")
     i = hole(f"/species/{k}/iucnRedListCategory") or {}
-    return dict(k=k, sci=s.get("canonicalName") or s.get("species"), o=s.get("order"), f=s.get("family"),
-                de=nm(("deu", "de")), en=nm(("eng", "en")), vi=nm(("vie", "vi")), iucn=i.get("category") or "NE", n=c["count"])
-with ThreadPoolExecutor(8) as pool: arten = [a for a in pool.map(art, zahlen) if a and a["sci"]]
+    return dict(k=k, sci=sci, o=s.get("order"), f=s.get("family"),
+                de=wiki("de", sci) or nm(("deu", "de")), en=wiki("en", sci) or nm(("eng", "en")), vi=wiki("vi", sci) or nm(("vie", "vi")), iucn=i.get("category") or "NE", n=c["count"])
+with ThreadPoolExecutor(4) as pool: arten = [a for a in pool.map(art, zahlen) if a and a["sci"]]
 arten.sort(key=lambda a: -a["n"])
 with open("hanoi/daten/voegel.json", "w", encoding="utf-8") as f:
     json.dump(dict(raum=gid or "rechteck", nachweise=antw["count"], stand=time.strftime("%Y-%m-%d"), arten=arten), f, ensure_ascii=False, separators=(",", ":"))
