@@ -25,18 +25,35 @@ def hole(abfrage):
                 print("  fehlgeschlagen:", u, e)
             time.sleep(10)
     return None, None
-def runde(o):
-    if isinstance(o, float): return round(o, 6)
-    if isinstance(o, list): return [runde(x) for x in o]
-    if isinstance(o, dict): return {k: runde(v) for k, v in o.items() if k not in ("bounds", "nodes")}
-    return o
+BEHALTEN = {"name","name:en","leisure","natural","tourism","amenity","shop","office","railway","station","aeroway","historic","place",
+            "wikidata","wikipedia","website","contact:website","phone","contact:phone","opening_hours","addr:housenumber","addr:street","addr:district","addr:city"}
+def punkt(p): return {"lat": round(p["lat"], 5), "lon": round(p["lon"], 5)}
+def duenn(e, name):
+    aus = {"type": e["type"], "id": e["id"]}
+    behalte = {"name", "ref"} if name == "strassen" else BEHALTEN
+    aus["tags"] = {k: v for k, v in e.get("tags", {}).items() if k in behalte}
+    if "lat" in e: aus.update(punkt(e))
+    if "center" in e: aus["center"] = punkt(e["center"])
+    if "geometry" in e: aus["geometry"] = [punkt(p) for p in e["geometry"] if p]
+    if "members" in e:
+        aus["members"] = [{"type": m["type"], "role": m.get("role", ""), "geometry": [punkt(p) for p in m["geometry"] if p]}
+                          for m in e["members"] if m["type"] == "way" and m.get("geometry")]
+    return aus
+def schreibe(name, elemente, stand):
+    aus = {"elements": [duenn(e, name) for e in elemente], "osm3s": stand}
+    with open(f"hanoi/daten/{name}.json", "w", encoding="utf-8") as f:
+        json.dump(aus, f, ensure_ascii=False, separators=(",", ":"))
+    return len(aus["elements"])
+if len(sys.argv) > 1 and sys.argv[1] == "--nur-duennen":
+    for name in TEILE:
+        d = json.load(open(f"hanoi/daten/{name}.json", encoding="utf-8"))
+        print(name, schreibe(name, d["elements"], d.get("osm3s", {})))
+    sys.exit(0)
 fehler = 0
 for name, abfrage in TEILE.items():
     d, u = hole(abfrage)
     if not d:
         print("NICHT GELADEN:", name); fehler += 1; continue
-    aus = {"elements": [runde(e) for e in d["elements"]], "osm3s": d.get("osm3s", {}), "server": u}
-    open(f"hanoi/daten/{name}.json", "w", encoding="utf-8").write(json.dumps(aus, ensure_ascii=False, separators=(",", ":")))
-    print(name, len(aus["elements"]), "von", u)
+    print(name, schreibe(name, d["elements"], d.get("osm3s", {})), "von", u)
     time.sleep(10)
 print("Fehler:", fehler)

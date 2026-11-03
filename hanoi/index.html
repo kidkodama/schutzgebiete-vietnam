@@ -166,7 +166,7 @@ const SERVICE='https://services5.arcgis.com/Mj0hjvkNtV7NRhA7/arcgis/rest/service
 const OVERPASS=['https://overpass.kumi.systems/api/interpreter','https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter'];
 const BB_GANZ='20.55,105.25,21.40,106.05', BB_KERN='20.85,105.60,21.20,106.05';
 const TAGE14=14*864e5;
-const map=L.map('map',{zoomControl:true,preferCanvas:true}).setView([21.03,105.85],12);
+const map=L.map('map',{zoomControl:true,renderer:L.canvas({tolerance:7,padding:.5})}).setView([21.03,105.85],12);
 const osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap-Mitwirkende'});
 const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Esri, Maxar, Earthstar Geographics'});
 const light=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16,attribution:'Esri, HERE, Garmin, © OpenStreetMap-Mitwirkende'});
@@ -271,7 +271,6 @@ const ORTTYP=t=>({hospital:'Krankenhaus',clinic:'Klinik',marketplace:'Markt',emb
   ||{supermarket:'Supermarkt',mall:'Einkaufszentrum'}[t.shop]||{diplomatic:'Diplomatische Vertretung',government:'Behörde'}[t.office]
   ||(t.railway==='station'?(t.station==='subway'?'Metrostation':'Bahnhof'):null)||(t.aeroway?'Flugplatz':null)||(t.historic?'Historische Stätte':null)||'Ort');
 const name=t=>t.name||t['name:en']||'';
-function neu(k,n){ zaehler[k]+=n; zeige(); }
 function zeige(){
   const nat=['park','garten','wasser','zoo','reservat'].reduce((s,k)=>s+zaehler[k],0);
   setz('s-n',nat||'–'); setz('s-a',zaehler.wdpa||'–');
@@ -321,13 +320,26 @@ function ortPopup(t,la,lo,k){
     <div class="pd" style="margin:8px 0 0 0">Quelle: OpenStreetMap (ODbL)</div>`;
 }
 
+/* Stapelreihenfolge: große Flächen unten, kleine darüber, Punkte zuoberst.
+   So lässt sich alles antippen, egal was zuerst geladen wurde. */
+let ordnenUhr=null;
+function ordnenBald(){ clearTimeout(ordnenUhr); ordnenUhr=setTimeout(ordnen,40); }
+function ordnen(){
+  const groesse=b=>{const a=b.getSouthWest(),c=b.getNorthEast();return (c.lat-a.lat)*(c.lng-a.lng);};
+  const sicht=records.filter(r=>r.layer.bringToFront&&map.hasLayer(r.layer));
+  sicht.filter(r=>r.layer.getBounds).map(r=>[groesse(r.layer.getBounds()),r.layer]).sort((a,b)=>b[0]-a[0]).forEach(x=>x[1].bringToFront());
+  const punkte=sicht.filter(r=>!r.layer.getBounds);
+  punkte.filter(r=>r.feature).forEach(r=>r.layer.bringToFront());
+  punkte.filter(r=>!r.feature).forEach(r=>r.layer.bringToFront());
+}
+const gesehen=new Set();
 /* --- Ebenen füllen --- */
 function flaeche(e,k){
   const g=geometrie(e), t=e.tags||{}; if(!g||g.type==='LineString') return;
   const f={type:'Feature',geometry:g,properties:{OBJECTID:'osm'+e.type+e.id,name:name(t),desig_eng:k,quelle:'osm',tags:t}};
   const c=KAT[k].c;
   L.geoJSON(f,{style:{color:c,weight:1.1,opacity:.95,fillColor:c,fillOpacity:k==='wasser'?.28:.34},
-    pointToLayer:(_,ll)=>L.circleMarker(ll,{radius:6,color:c,weight:2,fillColor:c,fillOpacity:.55}),
+    pointToLayer:(_,ll)=>L.circleMarker(ll,{radius:4,color:c,weight:2,fillColor:c,fillOpacity:.55}),
     onEachFeature:(_,l)=>{ l.bindTooltip(name(t),{sticky:true,direction:'top'});
       l.on('click',ev=>{L.DomEvent.stopPropagation(ev); openSpecies(f);}); l.addTo(groups[k]);
       records.push({name:name(t),d:k,layer:l,feature:f}); }});
@@ -349,6 +361,7 @@ function viertelMarke(n,la,lo,hinweis){
   m.addTo(groups[k]); records.push({name:n,d:k,layer:m}); zaehler[k]++;
 }
 function fuegeOrt(e){
+  const id=e.type+e.id; if(gesehen.has(id)) return; gesehen.add(id);
   const t=e.tags||{}, n=name(t); if(!n) return; const la=e.lat??e.center?.lat, lo=e.lon??e.center?.lon; if(la==null||lo==null) return;
   if(/^(suburb|quarter|neighbourhood)$/.test(t.place||'')){ if(RUHIG.some(r=>r[0]===n)) return; viertelMarke(n,la,lo,null); return; }
   const k=ortArt(t), c=KAT[k].c;
@@ -363,7 +376,7 @@ function statusText(r,n,was){ return r.veraltet?`${n} ${was}. Gespeicherter Stan
 function zeile(k){
   const row=document.createElement('label'); row.className='cat'+(KAT[k].an?'':' off');
   row.innerHTML=`<input type="checkbox" ${KAT[k].an?'checked':''}><span class="sw" style="background:${KAT[k].c}"></span><span class="nm">${KAT[k].de}</span><span class="ct" id="ct-${k}"></span>`;
-  row.querySelector('input').addEventListener('change',e=>{ if(e.target.checked){map.addLayer(groups[k]);row.classList.remove('off');} else {map.removeLayer(groups[k]);row.classList.add('off');} });
+  row.querySelector('input').addEventListener('change',e=>{ if(e.target.checked){map.addLayer(groups[k]);row.classList.remove('off');ordnenBald();} else {map.removeLayer(groups[k]);row.classList.add('off');} });
   document.getElementById('g-'+KAT[k].g).appendChild(row);
 }
 Object.keys(KAT).forEach(zeile);
@@ -374,7 +387,7 @@ function suche(){
   q.addEventListener('input',()=>{ const t=q.value.trim().toLowerCase(); hits.innerHTML=''; if(t.length<2) return;
     records.filter(r=>r.name.toLowerCase().includes(t)).slice(0,40).forEach(r=>{
       const el=document.createElement('div'); el.className='hit'; el.innerHTML=`${esc(r.name)}<small>${esc(KAT[r.d].de)}</small>`;
-      el.onclick=()=>{ if(!map.hasLayer(groups[r.d])) map.addLayer(groups[r.d]);
+      el.onclick=()=>{ if(!map.hasLayer(groups[r.d])){ map.addLayer(groups[r.d]); ordnen(); }
         const b=r.layer.getBounds?r.layer.getBounds():null;
         if(b&&b.isValid()) map.fitBounds(b,{maxZoom:15,padding:[40,40]}); else map.setView(r.layer.getLatLng(),16);
         if(r.feature) openSpecies(r.feature); else if(r.layer.openPopup) r.layer.openPopup(); };
@@ -383,19 +396,20 @@ function suche(){
 
 async function ladeNatur(){ setz('st-natur','Lädt aus OpenStreetMap …');
   try{ const r=await laden('natur',()=>osmDaten('natur',`(nwr["leisure"~"^(park|garden|nature_reserve)$"]["name"](${BB_GANZ});nwr["tourism"="zoo"]["name"](${BB_GANZ});nwr["natural"="water"]["name"](${BB_GANZ}););out geom;`));
-    r.daten.elements.forEach(e=>flaeche(e,naturArt(e.tags||{}))); zeige();
+    r.daten.elements.forEach(e=>flaeche(e,naturArt(e.tags||{}))); zeige(); ordnenBald();
     setz('st-natur',statusText(r,r.daten.elements.length,'Einträge'));
   }catch(e){ setz('st-natur','Konnte nicht geladen werden ('+e.message+'). Seite später neu laden.'); } }
 async function ladeWdpa(){ setz('st-wdpa','Lädt aus der WDPA …');
   try{ const hol=async l=>{ const u=`${SERVICE}/${l}/query?where=${encodeURIComponent("iso3='VNM'")}&geometry=105.0,20.3,106.3,21.6&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&geometryPrecision=5${l===1?'&maxAllowableOffset=0.002':''}&resultRecordCount=500&f=geojson`;
       const {r:a,text}=await mitFrist(u,{}); if(!a.ok) throw new Error('HTTP '+a.status); const j=JSON.parse(text); if(!j.features) throw new Error(j.error?.message||'Antwort ohne Datensätze'); return j; };
     const r=await laden('wdpa',async()=>{const [a,b]=await Promise.all([hol(1),hol(0)]);return {type:'FeatureCollection',features:[...a.features,...b.features]};});
-    fuegeWdpa(r.daten); zeige(); setz('st-wdpa',statusText(r,r.daten.features.length,'Gebiete'));
+    fuegeWdpa(r.daten); zeige(); ordnenBald(); setz('st-wdpa',statusText(r,r.daten.features.length,'Gebiete'));
   }catch(e){ setz('st-wdpa','Konnte nicht geladen werden ('+e.message+').'); } }
 async function ladeStrassen(){ setz('st-stadt','Straßen laden …');
   try{ const r=await laden('strassen',()=>osmDaten('strassen',`way["highway"~"^(motorway|trunk|primary)$"](${BB_KERN});out tags geom;`));
-    r.daten.elements.forEach(e=>{ if(!e.geometry||e.geometry.length<2) return; const p=e.geometry.map(q=>[q.lat,q.lon]); const n=e.tags?.name||e.tags?.ref||'';
-      strassen.push({p,n}); L.polyline(p,{color:KAT.strasse.c,weight:2,opacity:.7,interactive:false}).addTo(groups.strasse); zaehler.strasse++; });
+    const alle=[]; r.daten.elements.forEach(e=>{ if(!e.geometry||e.geometry.length<2) return; const p=e.geometry.map(q=>[q.lat,q.lon]); const n=e.tags?.name||e.tags?.ref||'';
+      strassen.push({p,n}); alle.push(p); zaehler.strasse++; });
+    L.polyline(alle,{color:KAT.strasse.c,weight:2,opacity:.7,interactive:false}).addTo(groups.strasse);
     zeige(); setz('st-stadt',statusText(r,r.daten.elements.length,'Straßenabschnitte'));
   }catch(e){ setz('st-stadt','Straßen konnten nicht geladen werden ('+e.message+').'); } }
 const ORTTEILE=[
@@ -407,7 +421,7 @@ async function ladeOrte(){
   const zeilen=[];
   for(const [titel,key,abfrage] of ORTTEILE){
     setz('st-orte',[...zeilen,titel+' lädt …'].join(' · '));
-    try{ const r=await laden(key,()=>osmDaten(key,abfrage)); r.daten.elements.forEach(fuegeOrt); zeige(); zeilen.push(`${titel}: ${r.daten.elements.length}${r.alt?' (vom Gerät)':''}`); }
+    try{ const r=await laden(key,()=>osmDaten(key,abfrage)); r.daten.elements.forEach(fuegeOrt); zeige(); ordnenBald(); zeilen.push(`${titel}: ${r.daten.elements.length}${r.alt?' (vom Gerät)':''}`); }
     catch(e){ zeilen.push(`${titel}: nicht geladen (${e.message})`); }
     setz('st-orte',zeilen.join(' · '));
   }
