@@ -30,22 +30,32 @@ antw = hole("/occurrence/search", **GRUND, **raum, facet="speciesKey", facetLimi
 zahlen = antw["facets"][0]["counts"] if antw["facets"] else []
 print("Nachweise", antw["count"], "Artschlüssel", len(zahlen))
 if not zahlen: sys.exit("ABBRUCH: keine Arten, Datei bleibt unverändert")
-def wiki(sprache, sci):
-    """Artikeltitel zum wissenschaftlichen Namen. Wikipedia leitet ihn auf den üblichen Namen um."""
-    u = f"https://{sprache}.wikipedia.org/api/rest_v1/page/summary/" + urllib.parse.quote(sci.replace(" ", "_")) + "?redirect=true"
-    for v in range(4):
-        try:
-            q = urllib.request.Request(u, headers={"User-Agent": "hanoi-karte (github.com/kidkodama/schutzgebiete-vietnam)"})
-            j = json.load(urllib.request.urlopen(q, timeout=60))
-            if j.get("type") != "standard": return None
-            ti = re.sub(r"\s*\(.*\)$", "", j.get("title") or "").strip()
-            return None if not ti or ti.lower() == sci.lower() else ti
-        except urllib.error.HTTPError as e:
-            if e.code == 404: return None
-            time.sleep(4 * (v + 1))
-        except Exception:
-            time.sleep(4 * (v + 1))
-    return None
+def wiki_titel(sprache, namen):
+    """Wissenschaftlicher Name -> Artikeltitel. Wikipedia leitet auf den üblichen Namen um. 50 Namen je Abfrage."""
+    aus = {}
+    for i in range(0, len(namen), 50):
+        teil = namen[i:i + 50]
+        u = f"https://{sprache}.wikipedia.org/w/api.php?" + urllib.parse.urlencode(dict(action="query", titles="|".join(teil), redirects=1, format="json", formatversion=2))
+        for v in range(5):
+            try:
+                q = urllib.request.Request(u, headers={"User-Agent": "hanoi-karte (github.com/kidkodama/schutzgebiete-vietnam)"})
+                j = json.load(urllib.request.urlopen(q, timeout=60))["query"]; break
+            except Exception as e:
+                print(" wiki", sprache, e); time.sleep(10 * (v + 1)); j = {}
+        um = {n: n for n in teil}
+        for x in j.get("normalized", []):
+            for k, w in um.items():
+                if w == x["from"]: um[k] = x["to"]
+        for x in j.get("redirects", []):
+            for k, w in um.items():
+                if w == x["from"]: um[k] = x["to"]
+        da = {s["title"] for s in j.get("pages", []) if not s.get("missing") and not s.get("invalid")}
+        for n, w in um.items():
+            ti = re.sub(r"\s*\(.*\)$", "", w).strip()
+            if w in da and ti and ti.lower() != n.lower(): aus[n] = ti
+        time.sleep(1)
+    print(" Wikipedia", sprache, len(aus))
+    return aus
 def art(c):
     k = int(c["name"]); s = hole(f"/species/{k}") or {}
     if s.get("rank") != "SPECIES": return None
@@ -53,12 +63,17 @@ def art(c):
     def nm(sprachen):
         """GBIF enthält auch falsche Namen (z. B. Eisvogel als Blauspecht): nur, was mindestens zwei Quellen gleich nennen."""
         z = collections.Counter(v["vernacularName"].strip() for v in vn if v.get("language") in sprachen and v.get("vernacularName"))
-        return next((n for n, a in z.most_common(1) if a >= 2), None)
+        return next((n for n, a in z.most_common(1) if a >= 2 and not n.isupper()), None)
     sci = s.get("canonicalName") or s.get("species")
     i = hole(f"/species/{k}/iucnRedListCategory") or {}
     return dict(k=k, sci=sci, o=s.get("order"), f=s.get("family"),
-                de=wiki("de", sci) or nm(("deu", "de")), en=wiki("en", sci) or nm(("eng", "en")), vi=wiki("vi", sci) or nm(("vie", "vi")), iucn=i.get("category") or "NE", n=c["count"])
-with ThreadPoolExecutor(4) as pool: arten = [a for a in pool.map(art, zahlen) if a and a["sci"]]
+                de=nm(("deu", "de")), en=nm(("eng", "en")), vi=nm(("vie", "vi")), iucn=i.get("category") or "NE", n=c["count"])
+with ThreadPoolExecutor(8) as pool: arten = [a for a in pool.map(art, zahlen) if a and a["sci"]]
+namen = [a["sci"] for a in arten]
+for sprache in ("de", "en", "vi"):
+    titel = wiki_titel(sprache, namen)
+    for a in arten:
+        if a["sci"] in titel: a[sprache] = titel[a["sci"]]
 arten.sort(key=lambda a: -a["n"])
 with open("hanoi/daten/voegel.json", "w", encoding="utf-8") as f:
     json.dump(dict(raum=gid or "rechteck", nachweise=antw["count"], stand=time.strftime("%Y-%m-%d"), arten=arten), f, ensure_ascii=False, separators=(",", ":"))
