@@ -7,7 +7,7 @@ permissions:
   contents: write
 jobs:
   testen:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -15,7 +15,7 @@ jobs:
         with: { node-version: 20 }
       - run: |
           mkdir -p werkstatt test-bilder
-          cd werkstatt && npm init -y >/dev/null && npm i playwright@1.48.2 >/dev/null && npx playwright install --with-deps webkit chromium >/dev/null
+          cd werkstatt && npm init -y >/dev/null && npm i playwright >/dev/null && npx playwright install --with-deps webkit chromium >/dev/null
           cd .. && NODE_PATH=werkstatt/node_modules node werkzeug/test_live.js 2>&1 | tee test-bilder/bericht.txt
       - run: |
           git config user.name "hanoi-test"
