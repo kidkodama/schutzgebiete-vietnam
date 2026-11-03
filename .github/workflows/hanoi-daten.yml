@@ -1,0 +1,21 @@
+name: Hanoi-Daten holen
+on:
+  push:
+    paths: ['.github/workflows/hanoi-daten.yml','werkzeug/hanoi_daten.py']
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  holen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p hanoi/daten && python3 werkzeug/hanoi_daten.py
+      - run: |
+          git config user.name "hanoi-daten"
+          git config user.email "hanoi-daten@users.noreply.github.com"
+          git add hanoi/daten
+          git diff --cached --quiet || { git commit -m "Hanoi-Daten aktualisiert"; git pull --rebase origin main; git push; }
