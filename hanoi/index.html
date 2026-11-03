@@ -796,7 +796,7 @@ async function ladeSichtungen(){ setz('st-voegel','Vogelsichtungen laden …');
     const r=await laden('sichtungen',async()=>{ for(const u of ['daten/sichtungen.json','https://raw.githubusercontent.com/kidkodama/schutzgebiete-vietnam/main/hanoi/daten/sichtungen.json']){
         try{ const {r:a,text}=await mitFrist(u,{}); if(a.ok) return JSON.parse(text); }catch(e){} } throw new Error('Datei nicht erreichbar'); });
     const d=r.daten;
-    d.stellen.forEach(s=>{ const m=L.circleMarker([s.la,s.lo],{radius:Math.min(15,5+Math.sqrt(s.n)/1.6),color:'#fff',weight:2,fillColor:VOGEL_FARBE,fillOpacity:.92,bubblingMouseEvents:false});
+    [...d.stellen].sort((x,y)=>y.n-x.n).forEach(s=>{ const m=L.circleMarker([s.la,s.lo],{radius:Math.min(15,5+Math.sqrt(s.n)/1.6),color:'#fff',weight:2,fillColor:VOGEL_FARBE,fillOpacity:.92,bubblingMouseEvents:false});
       m.bindTooltip(`${s.n} Vogelsichtung${s.n===1?'':'en'}, ${s.a.length} Art${s.a.length===1?'':'en'}`,{direction:'top'}); m.bindPopup(()=>vStellePopup(s,d.stand),{maxWidth:320}); m.addTo(groups.voegel); });
     zaehler.voegel=d.stellen.length; zeige(); ordnenBald();
     document.getElementById('st-voegel').innerHTML=`${vZahl.format(d.sichtungen)} Sichtungen an ${vZahl.format(d.stellen.length)} Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: <a style="color:var(--accent)" target="_blank" rel="noopener" href="https://www.gbif.org/occurrence/search?taxon_key=212&gadm_gid=VNM.27_1">GBIF.org</a>.`;
