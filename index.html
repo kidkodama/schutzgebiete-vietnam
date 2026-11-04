@@ -117,7 +117,7 @@
   <div id="side">
     <div class="pad">
       <h1>Schutzgebiete in Vietnam</h1>
-      <div class="sub">Alle in der <b>World Database on Protected Areas</b> (WDPA) registrierten Schutzgebiete – farblich nach Schutzkategorie unterschieden. Grenzen werden live beim Öffnen aus der offiziellen UNEP-WCMC-Datenbank geladen.<br><br><b style="color:var(--accent)">Gebiet anklicken</b> → rechts erscheinen die dort nachgewiesenen gefährdeten Tier- und Pflanzenarten mit Bild und Kurzsteckbrief (GBIF · IUCN · Wikipedia).</div>
+      <div class="sub">Alle in der <b>World Database on Protected Areas</b> (WDPA) registrierten Schutzgebiete – farblich nach Schutzkategorie unterschieden. Grenzen stammen aus der offiziellen UNEP-WCMC-Datenbank (Abschrift, monatlich abgeglichen).<br><br><b style="color:var(--accent)">Gebiet anklicken</b> → rechts erscheinen die dort nachgewiesenen gefährdeten Tier- und Pflanzenarten mit Bild und Kurzsteckbrief (GBIF · IUCN · Wikipedia).</div>
       <div class="stats">
         <div class="stat"><b id="s-n">–</b><span>Gebiete</span></div>
         <div class="stat"><b id="s-a">–</b><span>km² gemeldet</span></div>
@@ -174,7 +174,7 @@
       <p>• Grenzen sind für die Darstellung generalisiert (≈200 m Toleranz) und <b>nicht rechtsverbindlich</b>. Für amtliche Zwecke gilt die Originalgeometrie der WDPA bzw. der vietnamesischen Behörden.</p>
     </div>
   </div>
-  <div id="map"><div id="ovl"><div><b>Schutzgebietsdaten werden geladen …</b><br>Direktabruf aus der WDPA (UNEP-WCMC). Benötigt eine Internetverbindung.</div></div></div>
+  <div id="map"><div id="ovl"><div><b>Schutzgebietsdaten werden geladen …</b><br>WDPA (UNEP-WCMC). Benötigt eine Internetverbindung.</div></div></div>
   <aside id="panel"></aside>
 </div>
 
@@ -237,7 +237,18 @@ function style(p){
   return {color:m.c, weight:isInt?2:1.1, opacity:.95, fillColor:m.c, fillOpacity:isInt?0.07:0.34, dashArray:isInt?'6,4':null};
 }
 
+// Zuerst die mitgelieferte Abschrift (daten/, monatlich per GitHub Action aus der WDPA geholt):
+// lädt in Sekunden und hängt nicht davon ab, ob der WDPA-Dienst gerade antwortet.
+// Nur wenn sie fehlt, wird die WDPA direkt gefragt.
+let DATENSTAND=null;
 async function q(layer){
+  try{
+    const r=await fetch(`daten/${layer===1?'wdpa-flaechen':'wdpa-punkte'}.geojson`,{cache:'no-cache'});
+    if(r.ok){ const j=await r.json(); if(j.features&&(j.features.length||layer===0)){ if(j.abgerufen) DATENSTAND=j.abgerufen; return j; } }
+  }catch(e){ /* weiter mit Direktabruf */ }
+  return qLive(layer);
+}
+async function qLive(layer){
   const u=`${SERVICE}/${layer}/query?where=${encodeURIComponent("iso3='VNM'")}&outFields=${FIELDS}`
     +`&returnGeometry=true&outSR=4326&geometryPrecision=5${layer===1?'&maxAllowableOffset=0.002':''}`
     +`&resultRecordCount=2000&f=geojson`;
@@ -693,7 +704,7 @@ function buildUI(){
   const total=records.length;
   const area=records.reduce((s,r)=>s+0,0);
   document.getElementById('s-n').textContent=total;
-  document.getElementById('s-y').textContent='08/2026';
+  document.getElementById('s-y').textContent=DATENSTAND?DATENSTAND.slice(5,7)+'/'+DATENSTAND.slice(0,4):'live';
 
   const q=document.getElementById('q'), hits=document.getElementById('hits');
   const render=()=>{
@@ -722,7 +733,7 @@ function buildUI(){
     const sum=[...poly.features,...pts.features].reduce((s,f)=>s+(+f.properties.rep_area||0),0);
     document.getElementById('s-a').textContent=Math.round(sum).toLocaleString('de-DE');
     document.getElementById('method').innerHTML=
-      `Beim Öffnen wurden <b>${records.length} Schutzgebiete</b> (${poly.features.length} mit Flächengeometrie, ${pts.features.length} nur als Punkt) direkt aus der WDPA geladen. `+
+      `Beim Öffnen wurden <b>${records.length} Schutzgebiete</b> (${poly.features.length} mit Flächengeometrie, ${pts.features.length} nur als Punkt) ${DATENSTAND?'aus der Abschrift der WDPA vom '+DATENSTAND:'direkt aus der WDPA'} geladen. `+
       `Die Summe von ${Math.round(sum).toLocaleString('de-DE')} km² ist eine reine Addition der gemeldeten Flächen und <b>enthält Mehrfachzählungen</b> durch überlappende Ausweisungen.`;
     document.getElementById('ovl').remove();
   }catch(e){
