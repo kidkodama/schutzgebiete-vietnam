@@ -1,0 +1,36 @@
+=== ipad
+Status 712 Einträge geladen. | 19 Gebiete geladen. | Sehenswertes: 484 · Alltag: 1598 · Viertel und Verkehr: 778
+Sichtungen Vogelsichtungen: 29.904 an 855 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org. {"auf":true,"n":855}
+Popup 1 Vogelsichtung1 Art an dieser Stelle (rund 200 m) 1×Elsterweihezuletzt 2011-03-26Quellen: ohne Namen (1)Über GBIF.org, gemeldete Daten, nicht einzeln geprüft. Stand 2026-11-03.
+voegel 417 Arten aus 31.048 Nachweisen, davon 10 gefährdet (IUCN VU, EN, CR). Rechts steht die Zahl der Nachweise. Stand 2026-11-03. Art antippen für Foto und Text.
+ Gruppen ["SperlingsvögelPasseriformes249","Regenpfeiferartige (Watvögel, Möwen)Charadriiformes37","GreifvögelAccipitriformes18","SpechtvögelPiciformes16","KuckucksvögelCuculiformes14","Reiher, Ibisse und VerwandtePelecaniformes12","TaubenColumbiformes11","EntenvögelAnseriformes11","EulenStrigiformes10","SeglerApodiformes9","Kranichvögel und RallenGruiformes7","Rackenvögel (Eisvögel, Spinte)Coraciiformes6","HühnervögelGalliformes6","FalkenFalconiformes4","NachtschwalbenCaprimulgiformes2","LappentaucherPodicipediformes1","TrogoneTrogoniformes1","Hornvögel und WiedehopfeBucerotiformes1","StörcheCiconiiformes1","PapageienPsittaciformes1"]
+ Banner Eisvogel510 Sichtungen an 158 Stellen. Punkt antippen für Datum und Quelle.Quelle: GBIF.orgAusblenden
+schlangen 43 Arten aus 268 Nachweisen, davon 4 gefährdet (IUCN VU, EN, CR). Rechts steht die Zahl der Nachweise. Stand 2026-11-04. Art antippen für Foto und Text.
+ Gruppen ["Gefährlich giftig8","Schwach giftig6","Nicht als gefährlich giftig eingestuft29"]
+ Banner Chinesische Kobra19 Sichtungen an 19 Stellen. Punkt antippen für Datum und Quelle.Quelle: GBIF.orgAusblenden
+Sichtungen {"v":855,"s":122,"auf":true} Schlangensichtungen: 262 an 122 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+Abrufe {"kidkodama.github.io 200":10,"cdnjs.cloudflare.com 200":3,"server.arcgisonline.com 200":62,"services5.arcgis.com 200":2,"de.wikipedia.org 200":2,"thumb.wikimedia.org 200":2,"api.gbif.org 200":3}
+=== iphone
+Status 712 Einträge geladen. | 19 Gebiete geladen. | Sehenswertes: 484 · Alltag: 1598 · Viertel und Verkehr: 778
+Sichtungen Vogelsichtungen: 29.904 an 855 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org. {"auf":true,"n":855}
+Popup 1 Vogelsichtung1 Art an dieser Stelle (rund 200 m) 1×Elsterweihezuletzt 2011-03-26Quellen: ohne Namen (1)Über GBIF.org, gemeldete Daten, nicht einzeln geprüft. Stand 2026-11-03.
+voegel 417 Arten aus 31.048 Nachweisen, davon 10 gefährdet (IUCN VU, EN, CR). Rechts steht die Zahl der Nachweise. Stand 2026-11-03. Art antippen für Foto und Text.
+ Gruppen ["SperlingsvögelPasseriformes249","Regenpfeiferartige (Watvögel, Möwen)Charadriiformes37","GreifvögelAccipitriformes18","SpechtvögelPiciformes16","KuckucksvögelCuculiformes14","Reiher, Ibisse und VerwandtePelecaniformes12","TaubenColumbiformes11","EntenvögelAnseriformes11","EulenStrigiformes10","SeglerApodiformes9","Kranichvögel und RallenGruiformes7","Rackenvögel (Eisvögel, Spinte)Coraciiformes6","HühnervögelGalliformes6","FalkenFalconiformes4","NachtschwalbenCaprimulgiformes2","LappentaucherPodicipediformes1","TrogoneTrogoniformes1","Hornvögel und WiedehopfeBucerotiformes1","StörcheCiconiiformes1","PapageienPsittaciformes1"]
+ Banner Eisvogel510 Sichtungen an 158 Stellen. Punkt antippen für Datum und Quelle.Quelle: GBIF.orgAusblenden
+schlangen 43 Arten aus 268 Nachweisen, davon 4 gefährdet (IUCN VU, EN, CR). Rechts steht die Zahl der Nachweise. Stand 2026-11-04. Art antippen für Foto und Text.
+ Gruppen ["Gefährlich giftig8","Schwach giftig6","Nicht als gefährlich giftig eingestuft29"]
+ Banner Chinesische Kobra19 Sichtungen an 19 Stellen. Punkt antippen für Datum und Quelle.Quelle: GBIF.orgAusblenden
+Sichtungen {"v":855,"s":122,"auf":true} Schlangensichtungen: 262 an 122 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+Abrufe {"kidkodama.github.io 200":10,"cdnjs.cloudflare.com 200":3,"server.arcgisonline.com 200":25,"services5.arcgis.com 200":2,"de.wikipedia.org 200":2,"thumb.wikimedia.org 200":2,"api.gbif.org 200":3}
+=== chrome
+Status 712 Einträge geladen. | 19 Gebiete geladen. | Sehenswertes: 484 · Alltag: 1598 · Viertel und Verkehr: 778
+Sichtungen Vogelsichtungen: 29.904 an 855 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org. {"auf":true,"n":855}
+Popup 1 Vogelsichtung1 Art an dieser Stelle (rund 200 m) 1×Elsterweihezuletzt 2011-03-26Quellen: ohne Namen (1)Über GBIF.org, gemeldete Daten, nicht einzeln geprüft. Stand 2026-11-03.
+voegel 417 Arten aus 31.048 Nachweisen, davon 10 gefährdet (IUCN VU, EN, CR). Rechts steht die Zahl der Nachweise. Stand 2026-11-03. Art antippen für Foto und Text.
+ Gruppen ["SperlingsvögelPasseriformes249","Regenpfeiferartige (Watvögel, Möwen)Charadriiformes37","GreifvögelAccipitriformes18","SpechtvögelPiciformes16","KuckucksvögelCuculiformes14","Reiher, Ibisse und VerwandtePelecaniformes12","TaubenColumbiformes11","EntenvögelAnseriformes11","EulenStrigiformes10","SeglerApodiformes9","Kranichvögel und RallenGruiformes7","Rackenvögel (Eisvögel, Spinte)Coraciiformes6","HühnervögelGalliformes6","FalkenFalconiformes4","NachtschwalbenCaprimulgiformes2","LappentaucherPodicipediformes1","TrogoneTrogoniformes1","Hornvögel und WiedehopfeBucerotiformes1","StörcheCiconiiformes1","PapageienPsittaciformes1"]
+ Banner Eisvogel510 Sichtungen an 158 Stellen. Punkt antippen für Datum und Quelle.Quelle: GBIF.orgAusblenden
+schlangen 43 Arten aus 268 Nachweisen, davon 4 gefährdet (IUCN VU, EN, CR). Rechts steht die Zahl der Nachweise. Stand 2026-11-04. Art antippen für Foto und Text.
+ Gruppen ["Gefährlich giftig8","Schwach giftig6","Nicht als gefährlich giftig eingestuft29"]
+ Banner Chinesische Kobra19 Sichtungen an 19 Stellen. Punkt antippen für Datum und Quelle.Quelle: GBIF.orgAusblenden
+Sichtungen {"v":855,"s":122,"auf":true} Schlangensichtungen: 262 an 122 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+Abrufe {"kidkodama.github.io 200":10,"cdnjs.cloudflare.com 200":3,"server.arcgisonline.com 200":86,"services5.arcgis.com 200":2,"de.wikipedia.org 200":2,"thumb.wikimedia.org 200":2,"api.gbif.org 200":3}
