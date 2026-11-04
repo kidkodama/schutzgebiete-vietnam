@@ -118,12 +118,12 @@
   .place.ruhig{color:#7ff0dc;font-size:12.5px}
   .lstat{padding-left:16px}
   #ansichten{position:sticky;top:0;z-index:20;margin:0;border-radius:0;background:var(--panel2);border-bottom:1px solid var(--line)}
-  #v-q{width:calc(100% - 32px);margin:10px 16px 8px 16px;padding:8px 10px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:13px}
+  .vq{width:calc(100% - 32px);margin:10px 16px 8px 16px;padding:8px 10px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:13px}
   .btn.von{color:#06231f;background:var(--accent);border-color:var(--accent);font-weight:600}
-  #v-liste details{border-top:1px solid var(--line)}
-  #v-liste summary{padding:10px 16px;cursor:pointer;font-size:13.5px;font-weight:600;display:flex;gap:8px;align-items:baseline}
-  #v-liste summary small{color:var(--muted);font-weight:400;font-style:italic;flex:1;font-size:11.5px}
-  #v-liste summary span{color:var(--muted);font-weight:400;font-size:12px}
+  .vliste details{border-top:1px solid var(--line)}
+  .vliste summary{padding:10px 16px;cursor:pointer;font-size:13.5px;font-weight:600;display:flex;gap:8px;align-items:baseline}
+  .vliste summary small{color:var(--muted);font-weight:400;font-style:italic;flex:1;font-size:11.5px}
+  .vliste summary span{color:var(--muted);font-weight:400;font-size:12px}
   .fam{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);padding:9px 16px 3px 16px}
   .va{padding:7px 16px;cursor:pointer;font-size:13px;line-height:1.3;border-top:1px solid rgba(43,56,67,.4)}
   .va:hover{background:var(--panel2)}
@@ -131,27 +131,23 @@
   .va .zn{color:var(--muted);font-size:11px;float:right}
   .vd .sp{border-bottom:none;padding:8px 0}.vd{padding:0 16px 10px 16px;background:var(--panel2)}
   .vk{margin-top:2px;width:100%;padding:7px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--accent);font-size:12px;cursor:pointer}
+  .warnung{background:#3a1518;border-left:3px solid #ef5350;margin:0 16px 10px 16px;padding:9px 11px;font-size:12px;line-height:1.5;border-radius:0 6px 6px 0}
+  .gift{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#e53935;color:#fff}.gift.schwach{background:#fb8c00;color:#111}
   .vbanner{background:#111a20;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:8px 11px;font-size:12px;line-height:1.45;max-width:260px}
   .vbanner button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;padding:5px 0 0 0;display:block}
   .fern .place:not(.ruhig){display:none}
   .wiki{margin-top:9px;color:#c3ced7;font-size:12px;line-height:1.5}
   .wiki img{display:block;max-width:100%;max-height:150px;border-radius:6px;margin-bottom:7px}
-  @media(max-width:820px){.nurvoegel #side{flex:1 1 100%}.nurvoegel #map{display:none}#panel:not(.open){height:0;border:0}#side{flex:0 0 42%}#map{flex:1;height:auto}#panel.open{flex:0 0 55%}}
+  @media(max-width:820px){.nurliste #side{flex:1 1 100%}.nurliste #map{display:none}#panel:not(.open){height:0;border:0}#side{flex:0 0 42%}#map{flex:1;height:auto}#panel.open{flex:0 0 55%}}
   .lnk{margin-top:9px;font-size:11.5px}.lnk a{color:#4db6ac;margin-right:10px}
 </style>
 </head>
 <body>
 <div id="app">
   <div id="side">
-    <div id="ansichten" class="tabs"><button class="tab on" data-a="karte">Karte</button><button class="tab" data-a="voegel">Vögel in Hanoi</button></div>
-    <div id="a-voegel" hidden>
-      <div class="pad"><h1>Vögel in Hanoi</h1><div class="sub" id="v-sub">Liste wird geladen …</div></div>
-      <input id="v-q" placeholder="Art suchen: deutsch, englisch, vietnamesisch, lateinisch" autocomplete="off">
-      <div class="btnrow"><button class="btn von" data-m="ordnung">Nach Ordnung</button><button class="btn" data-m="iucn">Nach Gefährdung</button></div>
-      <div id="v-liste"></div>
-      <div class="src" style="padding-top:12px"><p><b>Quelle:</b> <a href="https://www.gbif.org/occurrence/search" target="_blank" rel="noopener">GBIF</a>, alle Vogelnachweise im Verwaltungsgebiet Hà Nội (GADM), wöchentlich abgerufen. Status: IUCN über GBIF. Namen: GBIF, Deutsch nicht bei jeder Art vorhanden.</p>
-      <p><b>Was die Liste ist und was nicht:</b> Sie enthält jede Art mit mindestens einem Nachweis, über alle Jahre und Jahreszeiten. Das sind auch Zugvögel, seltene Irrgäste, Käfigflüchtlinge und mögliche Fehlbestimmungen. Es ist keine amtliche Artenliste. Die Zahl der Nachweise hängt stark davon ab, wie oft eine Art gemeldet wird.</p></div>
-    </div>
+    <div id="ansichten" class="tabs"><button class="tab on" data-a="karte">Karte</button><button class="tab" data-a="voegel">Vögel</button><button class="tab" data-a="schlangen">Schlangen</button></div>
+    <div id="a-voegel" hidden></div>
+    <div id="a-schlangen" hidden></div>
     <div id="a-karte">
     <div class="pad">
       <h1>Hanoi – Natur und Stadt</h1>
@@ -164,6 +160,7 @@
     </div>
     <h2 style="padding-left:16px">Natur in der Stadt</h2><div id="g-natur"></div><div class="lstat" id="st-natur"></div>
     <div class="lstat" id="st-voegel"></div>
+    <div class="lstat" id="st-schlangen"></div>
     <h2 style="padding-left:16px">Schutzgebiete um Hanoi</h2><div id="g-wdpa"></div><div class="lstat" id="st-wdpa"></div>
     <h2 style="padding-left:16px">Stadtteile und Ruhe</h2><div id="g-stadt"></div><div class="lstat" id="st-stadt"></div>
     <h2 style="padding-left:16px">Sehenswertes und Alltag</h2><div id="g-orte"></div><div class="lstat" id="st-orte"></div>
@@ -208,6 +205,7 @@ const KAT={
  wasser:{c:'#2196f3',de:'See / Gewässer',g:'natur',an:1}, zoo:{c:'#d3a017',de:'Zoo',g:'natur',an:1},
  reservat:{c:'#26c6da',de:'Naturreservat (OpenStreetMap)',g:'natur',an:1},
  voegel:{c:'#7c00ff',de:'Vogelsichtungen (violette Punkte)',g:'natur',an:1},
+ schlangen:{c:'#ff6d00',de:'Schlangensichtungen (orange Punkte)',g:'natur',an:1},
  wdpa:{c:'#ff7043',de:'Gemeldetes Schutzgebiet (WDPA)',g:'wdpa',an:1},
  ruhig:{c:'#7ff0dc',de:'Ruhige Viertel (Recherche Okt. 2026)',g:'stadt',an:1},
  viertel:{c:'#cfd8dc',de:'Viertel und Ortsteile',g:'stadt',an:1},
@@ -355,10 +353,10 @@ function ordnen(){
   const groesse=b=>{const a=b.getSouthWest(),c=b.getNorthEast();return (c.lat-a.lat)*(c.lng-a.lng);};
   const sicht=records.filter(r=>r.layer.bringToFront&&map.hasLayer(r.layer));
   sicht.filter(r=>r.layer.getBounds).map(r=>[groesse(r.layer.getBounds()),r.layer]).sort((a,b)=>b[0]-a[0]).forEach(x=>x[1].bringToFront());
+  ['voegel','schlangen'].forEach(k=>{ if(map.hasLayer(groups[k])) groups[k].eachLayer(l=>l.bringToFront()); });
   const punkte=sicht.filter(r=>!r.layer.getBounds);
   punkte.filter(r=>r.feature).forEach(r=>r.layer.bringToFront());
   punkte.filter(r=>!r.feature).forEach(r=>r.layer.bringToFront());
-  if(map.hasLayer(groups.voegel)) groups.voegel.eachLayer(l=>l.bringToFront());
   if(vDichte) vDichte.eachLayer(l=>l.bringToFront());
 }
 const gesehen=new Set();
@@ -734,47 +732,81 @@ function creditBlock(d){
   </div>`;
 }
 
-/* --- Reiter „Vögel in Hanoi“ --- */
+/* --- Arten-Reiter: Vögel und Schlangen nach demselben Prinzip --- */
 const ORDNUNG_DE={Passeriformes:'Sperlingsvögel',Charadriiformes:'Regenpfeiferartige (Watvögel, Möwen)',Accipitriformes:'Greifvögel',Piciformes:'Spechtvögel',Cuculiformes:'Kuckucksvögel',Pelecaniformes:'Reiher, Ibisse und Verwandte',Columbiformes:'Tauben',Anseriformes:'Entenvögel',Strigiformes:'Eulen',Apodiformes:'Segler',Gruiformes:'Kranichvögel und Rallen',Coraciiformes:'Rackenvögel (Eisvögel, Spinte)',Galliformes:'Hühnervögel',Falconiformes:'Falken',Caprimulgiformes:'Nachtschwalben',Podicipediformes:'Lappentaucher',Trogoniformes:'Trogone',Bucerotiformes:'Hornvögel und Wiedehopfe',Ciconiiformes:'Störche',Psittaciformes:'Papageien'};
+const FAMILIE_DE={Colubridae:'Nattern',Elapidae:'Giftnattern (Kobras, Kraits)',Viperidae:'Vipern und Grubenottern',Homalopsidae:'Wassertrugnattern',Xenopeltidae:'Erdschlangen',Typhlopidae:'Blindschlangen',Pareidae:'Schneckennattern'};
 const CODE={LEAST_CONCERN:'LC',NEAR_THREATENED:'NT',VULNERABLE:'VU',ENDANGERED:'EN',CRITICALLY_ENDANGERED:'CR',DATA_DEFICIENT:'DD',NOT_EVALUATED:'NE'};
-let vArten=null, vModus='ordnung', vDichte=null, vBanner=null;
+/* Giftigkeit: redaktionelle Einteilung, keine Datenbankangabe.
+   Stufe 2: Giftnattern, Vipern und Rhabdophis. Stufe 1: Trugnattern mit bekanntem schwachem Gift. */
+const SCHWACH=/^(Boiga|Ahaetulla|Chrysopelea|Enhydris|Myrrophis|Hypsiscopus|Psammodynastes)\b/;
+function giftStufe(a){ if(a.f==='Elapidae'||a.f==='Viperidae'||/^Rhabdophis\b/.test(a.sci)) return 2; return SCHWACH.test(a.sci)?1:0; }
+const GIFTTITEL=['Nicht als gefährlich giftig eingestuft','Schwach giftig','Gefährlich giftig'];
+const REITER=[
+ {id:'voegel',kat:'voegel',einzahl:'Vogelsichtung',mehrzahl:'Vogelsichtungen',farbe:'#7c00ff',titel:'Vögel in Hanoi',datei:'voegel',stellen:'sichtungen',suche:'Art suchen: deutsch, englisch, vietnamesisch, lateinisch',
+  gbif:'taxon_key=212&gadm_gid=VNM.27_1',modi:[['ordnung','Nach Ordnung'],['iucn','Nach Gefährdung']],marke:()=>'',warnung:'',
+  quelle:`<p><b>Quelle:</b> <a href="https://www.gbif.org/occurrence/search?taxon_key=212&gadm_gid=VNM.27_1" target="_blank" rel="noopener">GBIF</a>, alle Vogelnachweise im Verwaltungsgebiet Hà Nội (GADM), wöchentlich abgerufen. Status: IUCN über GBIF. Namen: Wikipedia, sonst GBIF.</p><p><b>Was die Liste ist und was nicht:</b> Sie enthält jede Art mit mindestens einem Nachweis, über alle Jahre und Jahreszeiten. Das sind auch Zugvögel, seltene Irrgäste, Käfigflüchtlinge und mögliche Fehlbestimmungen. Es ist keine amtliche Artenliste. Die Zahl der Nachweise hängt stark davon ab, wie oft eine Art gemeldet wird.</p>`},
+ {id:'schlangen',kat:'schlangen',einzahl:'Schlangensichtung',mehrzahl:'Schlangensichtungen',farbe:'#ff6d00',titel:'Schlangen in Hanoi',datei:'schlangen',stellen:'schlangen-sichtungen',suche:'Art suchen: deutsch, englisch, vietnamesisch, lateinisch',
+  gbif:'gadm_gid=VNM.27_1',modi:[['gift','Nach Giftigkeit'],['familie','Nach Familie'],['iucn','Nach Gefährdung']],
+  marke:a=>{const s=giftStufe(a);return s===2?' <span class="gift">giftig</span>':s===1?' <span class="gift schwach">schwach giftig</span>':'';},
+  warnung:'<b>Keine Bestimmungshilfe.</b> Schlangen nicht anfassen, auch vermeintlich harmlose nicht. Das Fehlen eines Punkts heißt nicht, dass dort keine Schlangen leben. Nach jedem Biss sofort ins Krankenhaus, auch ohne Schmerzen, denn manche Bisse wirken erst später. Rettungsnummer in Vietnam: 115. Im Norden behandelt unter anderem das Giftzentrum des Bạch-Mai-Krankenhauses Schlangenbisse.',
+  quelle:`<p><b>Quelle:</b> <a href="https://www.gbif.org/occurrence/search?gadm_gid=VNM.27_1" target="_blank" rel="noopener">GBIF</a>, Nachweise der Schlangenfamilien im Verwaltungsgebiet Hà Nội (GADM), wöchentlich abgerufen. Status: IUCN über GBIF. Namen: Wikipedia, sonst GBIF.</p><p><b>Giftigkeit:</b> redaktionelle Einteilung für diese Karte, keine Datenbankangabe und keine medizinische Auskunft. „Gefährlich giftig“ sind Giftnattern, Vipern und Rhabdophis. „Nicht als gefährlich eingestuft“ heißt nicht harmlos: Auch ungiftige Schlangen beißen, und die Bestimmung ist oft unsicher.</p><p><b>Was die Liste ist und was nicht:</b> Es gibt nur wenige Nachweise, weil Schlangen selten gemeldet werden. Die Liste ist also sicher unvollständig, und Fundorte werden bei gesuchten Arten teils zurückgehalten. Es ist keine amtliche Artenliste.</p>`}
+];
+const VZAHL=new Intl.NumberFormat('de-DE');
 const vName=a=>a.de||a.en||a.sci;
-function vZeile(a){ const zweit=[a.de?a.en:null,a.vi].filter(Boolean).join(' · ');
-  return `<div class="va" data-k="${a.k}"><span class="zn">${fmtN(a.n)}</span>${esc(vName(a))} <span class="iucn i-${a.c}">${a.c}</span><small><i>${esc(a.sci)}</i>${zweit?' · '+esc(zweit):''}</small></div>`; }
-function vGruppen(){
-  if(vModus==='iucn'){ const m=new Map(); [...vArten].sort((a,b)=>(RANK[a.c]??9)-(RANK[b.c]??9)||b.n-a.n).forEach(a=>{ if(!m.has(a.c)) m.set(a.c,[]); m.get(a.c).push(a); });
-    return [...m].map(([c,l])=>({t:`${c} · ${IUCN_DE[c]||'nicht bewertet'}`,u:'',l,fam:false})); }
-  const m=new Map(); vArten.forEach(a=>{ const o=a.o||'Ohne Angabe'; if(!m.has(o)) m.set(o,[]); m.get(o).push(a); });
-  return [...m].sort((a,b)=>b[1].length-a[1].length).map(([o,l])=>({t:ORDNUNG_DE[o]||o,u:o,l,fam:true}));
+function vZeile(cfg,a){ const zweit=[a.de?a.en:null,a.vi].filter(Boolean).join(' · ');
+  return `<div class="va" data-k="${a.k}"><span class="zn">${fmtN(a.n)}</span>${esc(vName(a))} <span class="iucn i-${a.c}">${a.c}</span>${cfg.marke(a)}<small><i>${esc(a.sci)}</i>${zweit?' · '+esc(zweit):''}</small></div>`; }
+function vGruppen(cfg){
+  const sammle=(liste,fn)=>{const m=new Map(); liste.forEach(a=>{const k=fn(a); if(!m.has(k)) m.set(k,[]); m.get(k).push(a);}); return m;};
+  if(cfg.modus==='iucn') return [...sammle([...cfg.arten].sort((a,b)=>(RANK[a.c]??9)-(RANK[b.c]??9)||b.n-a.n),a=>a.c)].map(([c,l])=>({t:`${c} · ${IUCN_DE[c]||'nicht bewertet'}`,u:'',l,fam:false}));
+  if(cfg.modus==='gift') return [...sammle(cfg.arten,giftStufe)].sort((a,b)=>b[0]-a[0]).map(([s,l])=>({t:GIFTTITEL[s],u:'',l,fam:false,offen:s===2}));
+  if(cfg.modus==='familie') return [...sammle(cfg.arten,a=>a.f||'Familie unbekannt')].sort((a,b)=>b[1].length-a[1].length).map(([f,l])=>({t:FAMILIE_DE[f]||f,u:f,l,fam:false}));
+  return [...sammle(cfg.arten,a=>a.o||'Ohne Angabe')].sort((a,b)=>b[1].length-a[1].length).map(([o,l])=>({t:ORDNUNG_DE[o]||o,u:o,l,fam:true}));
 }
-function vInhalt(g){ if(!g.fam) return g.l.map(vZeile).join('');
+function vInhalt(cfg,g){ if(!g.fam) return g.l.map(a=>vZeile(cfg,a)).join('');
   const m=new Map(); g.l.forEach(a=>{ const f=a.f||'Familie unbekannt'; if(!m.has(f)) m.set(f,[]); m.get(f).push(a); });
-  return [...m].sort((a,b)=>b[1].length-a[1].length).map(([f,l])=>`<div class="fam">${esc(f)} · ${l.length}</div>`+l.map(vZeile).join('')).join(''); }
-function vZeichne(){
-  const host=document.getElementById('v-liste'), s=document.getElementById('v-q').value.trim().toLowerCase();
-  if(!vArten) return;
-  if(s.length>=2){ const t=vArten.filter(a=>[a.de,a.en,a.vi,a.sci,a.o,a.f].some(x=>x&&x.toLowerCase().includes(s)));
-    host.innerHTML=t.length?t.map(vZeile).join(''):'<div class="spin">Keine Art gefunden.</div>'; return; }
-  const gr=vGruppen(); host.innerHTML=gr.map((g,i)=>`<details data-i="${i}"><summary>${esc(g.t)}<small>${esc(g.u)}</small><span>${g.l.length}</span></summary><div class="vi"></div></details>`).join('');
-  host.querySelectorAll('details').forEach(d=>d.addEventListener('toggle',()=>{ const b=d.querySelector('.vi'); if(d.open&&!b.innerHTML) b.innerHTML=vInhalt(gr[+d.dataset.i]); }));
+  return [...m].sort((a,b)=>b[1].length-a[1].length).map(([f,l])=>`<div class="fam">${esc(f)} · ${l.length}</div>`+l.map(a=>vZeile(cfg,a)).join('')).join(''); }
+function vZeichne(cfg){
+  const host=cfg.el.querySelector('.vliste'), s=cfg.el.querySelector('.vq').value.trim().toLowerCase();
+  if(!cfg.arten) return;
+  if(s.length>=2){ const t=cfg.arten.filter(a=>[a.de,a.en,a.vi,a.sci,a.o,a.f].some(x=>x&&x.toLowerCase().includes(s)));
+    host.innerHTML=t.length?t.map(a=>vZeile(cfg,a)).join(''):'<div class="spin">Keine Art gefunden.</div>'; return; }
+  const gr=vGruppen(cfg); host.innerHTML=gr.map((g,i)=>`<details data-i="${i}"><summary>${esc(g.t)}<small>${esc(g.u)}</small><span>${g.l.length}</span></summary><div class="vi"></div></details>`).join('');
+  host.querySelectorAll('details').forEach(d=>{ d.addEventListener('toggle',()=>{ const b=d.querySelector('.vi'); if(d.open&&!b.innerHTML) b.innerHTML=vInhalt(cfg,gr[+d.dataset.i]); }); if(gr[+d.dataset.i].offen) d.open=true; });
 }
-async function vLaden(){
-  if(vArten) return;
-  try{ const r=await laden('voegel',async()=>{ for(const u of ['daten/voegel.json','https://raw.githubusercontent.com/kidkodama/schutzgebiete-vietnam/main/hanoi/daten/voegel.json']){
-        try{ const {r:a,text}=await mitFrist(u,{}); if(a.ok) return JSON.parse(text); }catch(e){} } throw new Error('Datei nicht erreichbar'); });
-    vArten=r.daten.arten.map(a=>({...a,c:CODE[a.iucn]||'NE'}));
-    const gef=vArten.filter(a=>THREAT.includes(a.c)).length;
-    document.getElementById('v-sub').innerHTML=`<b>${vArten.length} Arten</b> aus ${fmtN(r.daten.nachweise)} Nachweisen, davon ${gef} gefährdet (IUCN VU, EN, CR). Rechts steht die Zahl der Nachweise. Stand ${esc(r.daten.stand)}. Art antippen für Foto und Text.`;
-    vZeichne();
-  }catch(e){ document.getElementById('v-sub').textContent='Liste konnte nicht geladen werden ('+e.message+'). Seite neu laden.'; }
+async function holeDatei(name){ for(const u of [`daten/${name}.json`,`https://raw.githubusercontent.com/kidkodama/schutzgebiete-vietnam/main/hanoi/daten/${name}.json`]){
+    try{ const {r:a,text}=await mitFrist(u,{}); if(a.ok) return JSON.parse(text); }catch(e){} } throw new Error('Datei nicht erreichbar'); }
+async function vLaden(cfg){
+  if(cfg.arten) return;
+  const sub=cfg.el.querySelector('.vsub');
+  try{ const r=await laden(cfg.datei,()=>holeDatei(cfg.datei));
+    cfg.arten=r.daten.arten.map(a=>({...a,c:CODE[a.iucn]||'NE'}));
+    const gef=cfg.arten.filter(a=>THREAT.includes(a.c)).length;
+    sub.innerHTML=`<b>${cfg.arten.length} Arten</b> aus ${fmtN(r.daten.nachweise)} Nachweisen, davon ${gef} gefährdet (IUCN VU, EN, CR). Rechts steht die Zahl der Nachweise. Stand ${esc(r.daten.stand)}. Art antippen für Foto und Text.`;
+    vZeichne(cfg);
+  }catch(e){ sub.textContent='Liste konnte nicht geladen werden ('+e.message+'). Seite neu laden.'; }
 }
-const VOGEL_FARBE='#7c00ff', vZahl=new Intl.NumberFormat('de-DE');
+function vArtName(cfg,k){ const a=cfg.arten&&cfg.arten.find(x=>x.k===k); return a?esc(vName(a))+cfg.marke(a):'Art '+k; }
+function vStellePopup(cfg,s,stand){
+  const zeilen=s.a.slice(0,12).map(([k,z,d])=>`<tr><td>${VZAHL.format(z)}×</td><td><a style="color:#4db6ac" target="_blank" rel="noopener" href="https://www.gbif.org/species/${k}">${vArtName(cfg,k)}</a>${d?`<br><span style="color:var(--muted);font-size:11px">zuletzt ${esc(d)}</span>`:''}</td></tr>`).join('');
+  return `<div class="pt">${VZAHL.format(s.n)} ${s.n===1?cfg.einzahl:cfg.mehrzahl}</div><div class="pd">${s.a.length} Art${s.a.length===1?'':'en'} an dieser Stelle (rund 200 m)${s.a.length>12?', hier die 12 häufigsten':''}</div>
+    <table class="pk">${zeilen}</table><div class="pd" style="margin:9px 0 0 0"><b>Quellen:</b> ${s.q.map(q=>esc(q[0])+' ('+VZAHL.format(q[1])+')').join(', ')}<br>Über <a style="color:#4db6ac" target="_blank" rel="noopener" href="https://www.gbif.org/occurrence/search?${cfg.gbif}">GBIF.org</a>, gemeldete Daten, nicht einzeln geprüft. Stand ${esc(stand)}.</div>`;
+}
+async function ladeSichtungen(cfg){ const st=`st-${cfg.id}`; setz(st,cfg.mehrzahl+' laden …');
+  try{ await vLaden(cfg);
+    const r=await laden(cfg.stellen,()=>holeDatei(cfg.stellen)); const d=r.daten;
+    [...d.stellen].sort((x,y)=>y.n-x.n).forEach(s=>{ const m=L.circleMarker([s.la,s.lo],{radius:Math.min(15,(cfg.id==='schlangen'?7:5)+Math.sqrt(s.n)/1.6),color:'#fff',weight:2,fillColor:cfg.farbe,fillOpacity:.92,bubblingMouseEvents:false});
+      m.bindTooltip(`${s.n} ${s.n===1?cfg.einzahl:cfg.mehrzahl}, ${s.a.length} Art${s.a.length===1?'':'en'}`,{direction:'top'}); m.bindPopup(()=>vStellePopup(cfg,s,d.stand),{maxWidth:320}); m.addTo(groups[cfg.kat]); });
+    zaehler[cfg.kat]=d.stellen.length; zeige(); ordnenBald();
+    document.getElementById(st).innerHTML=`${esc(cfg.mehrzahl)}: ${VZAHL.format(d.sichtungen)} an ${VZAHL.format(d.stellen.length)} Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: <a style="color:var(--accent)" target="_blank" rel="noopener" href="https://www.gbif.org/occurrence/search?${cfg.gbif}">GBIF.org</a>.`;
+  }catch(e){ setz(st,cfg.mehrzahl+' konnten nicht geladen werden ('+e.message+'). Seite neu laden.'); }
+}
 const BELEG={HUMAN_OBSERVATION:'Beobachtung',MACHINE_OBSERVATION:'Automatische Erfassung',PRESERVED_SPECIMEN:'Museumsbeleg',LIVING_SPECIMEN:'Lebendes Exemplar',MATERIAL_SAMPLE:'Probe',OCCURRENCE:'Nachweis',OBSERVATION:'Beobachtung'};
 function vBelegZeile(o){
   const quelle=o.datasetName||o.institutionCode||'Datensatz ohne Namen';
   return `<div style="padding:6px 0;border-top:1px solid #2b3843"><b>${esc((o.eventDate||'Datum unbekannt').slice(0,10))}</b> · ${esc(BELEG[o.basisOfRecord]||o.basisOfRecord||'Nachweis')}
     ${o.recordedBy?`<br>Von: ${esc(o.recordedBy)}`:''}<br>Quelle: ${esc(quelle)}<br><a style="color:#4db6ac" target="_blank" rel="noopener" href="https://www.gbif.org/occurrence/${encodeURIComponent(o.key)}">Datensatz bei GBIF</a></div>`;
 }
+let vDichte=null, vBanner=null, vLauf=0;
 function vBannerZeigen(a,text){
   if(vBanner) vBanner.remove();
   vBanner=L.control({position:'bottomleft'});
@@ -784,26 +816,8 @@ function vBannerZeigen(a,text){
     b.onclick=()=>{ if(vDichte) map.removeLayer(vDichte); vDichte=null; vBanner.remove(); vBanner=null; vLauf++; }; return d; };
   vBanner.addTo(map);
 }
-let vLauf=0;
-function vArtName(k){ const a=vArten&&vArten.find(x=>x.k===k); return a?vName(a):'Art '+k; }
-function vStellePopup(s,gbif){
-  const zeilen=s.a.slice(0,12).map(([k,z,d])=>`<tr><td>${vZahl.format(z)}×</td><td><a style="color:#4db6ac" target="_blank" rel="noopener" href="https://www.gbif.org/occurrence/search?taxon_key=${k}&gadm_gid=VNM.27_1">${esc(vArtName(k))}</a>${d?`<br><span style="color:var(--muted);font-size:11px">zuletzt ${esc(d)}</span>`:''}</td></tr>`).join('');
-  return `<div class="pt">${vZahl.format(s.n)} Vogelsichtung${s.n===1?'':'en'}</div><div class="pd">${s.a.length} Art${s.a.length===1?'':'en'} an dieser Stelle (rund 200 m)${s.a.length>12?', hier die 12 häufigsten':''}</div>
-    <table class="pk">${zeilen}</table><div class="pd" style="margin:9px 0 0 0"><b>Quellen:</b> ${s.q.map(q=>esc(q[0])+' ('+vZahl.format(q[1])+')').join(', ')}<br>Über <a style="color:#4db6ac" target="_blank" rel="noopener" href="https://www.gbif.org/occurrence/search?taxon_key=212&gadm_gid=VNM.27_1">GBIF.org</a>, gemeldete Daten, nicht einzeln geprüft. Stand ${esc(gbif)}.</div>`;
-}
-async function ladeSichtungen(){ setz('st-voegel','Vogelsichtungen laden …');
-  try{ await vLaden();
-    const r=await laden('sichtungen',async()=>{ for(const u of ['daten/sichtungen.json','https://raw.githubusercontent.com/kidkodama/schutzgebiete-vietnam/main/hanoi/daten/sichtungen.json']){
-        try{ const {r:a,text}=await mitFrist(u,{}); if(a.ok) return JSON.parse(text); }catch(e){} } throw new Error('Datei nicht erreichbar'); });
-    const d=r.daten;
-    [...d.stellen].sort((x,y)=>y.n-x.n).forEach(s=>{ const m=L.circleMarker([s.la,s.lo],{radius:Math.min(15,5+Math.sqrt(s.n)/1.6),color:'#fff',weight:2,fillColor:VOGEL_FARBE,fillOpacity:.92,bubblingMouseEvents:false});
-      m.bindTooltip(`${s.n} Vogelsichtung${s.n===1?'':'en'}, ${s.a.length} Art${s.a.length===1?'':'en'}`,{direction:'top'}); m.bindPopup(()=>vStellePopup(s,d.stand),{maxWidth:320}); m.addTo(groups.voegel); });
-    zaehler.voegel=d.stellen.length; zeige(); ordnenBald();
-    document.getElementById('st-voegel').innerHTML=`${vZahl.format(d.sichtungen)} Sichtungen an ${vZahl.format(d.stellen.length)} Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: <a style="color:var(--accent)" target="_blank" rel="noopener" href="https://www.gbif.org/occurrence/search?taxon_key=212&gadm_gid=VNM.27_1">GBIF.org</a>.`;
-  }catch(e){ setz('st-voegel','Vogelsichtungen konnten nicht geladen werden ('+e.message+'). Seite neu laden.'); }
-}
-function vAlleAus(){ const i=[...document.querySelectorAll('#g-natur label')].find(l=>l.textContent.includes('Vogelsichtungen'))?.querySelector('input'); if(i&&i.checked) i.click(); }
-async function vAufKarte(a){
+function vAlleAus(){ REITER.forEach(c=>{ const i=[...document.querySelectorAll('#g-natur label')].find(l=>l.textContent.includes(c.mehrzahl))?.querySelector('input'); if(i&&i.checked) i.click(); }); }
+async function vAufKarte(cfg,a){
   const lauf=++vLauf; vAlleAus();
   if(vDichte) map.removeLayer(vDichte);
   vDichte=L.layerGroup().addTo(map);
@@ -816,39 +830,47 @@ async function vAufKarte(a){
       const {r,text}=await mitFrist(u,{}); if(!r.ok) throw new Error('GBIF '+r.status);
       const j=JSON.parse(text); if(lauf!==vLauf) return;
       alle.push(...j.results); gesamt=j.count; if(j.endOfRecords||!j.results.length) break;
-      vBannerZeigen(a,`${vZahl.format(alle.length)} von ${vZahl.format(gesamt)} Sichtungen geladen …`);
+      vBannerZeigen(a,`${VZAHL.format(alle.length)} von ${VZAHL.format(gesamt)} Sichtungen geladen …`);
     }
     const orte_=new Map();
     alle.forEach(o=>{ if(o.decimalLatitude==null||o.decimalLongitude==null) return; const k=o.decimalLatitude.toFixed(4)+','+o.decimalLongitude.toFixed(4); if(!orte_.has(k)) orte_.set(k,[]); orte_.get(k).push(o); });
     const marken=[];
     orte_.forEach(l=>{ l.sort((x,y)=>String(y.eventDate||'').localeCompare(String(x.eventDate||'')));
-      const m=L.circleMarker([l[0].decimalLatitude,l[0].decimalLongitude],{radius:Math.min(16,8+Math.sqrt(l.length)),color:'#fff',weight:2.5,fillColor:VOGEL_FARBE,fillOpacity:.92,bubblingMouseEvents:false});
+      const m=L.circleMarker([l[0].decimalLatitude,l[0].decimalLongitude],{radius:Math.min(16,8+Math.sqrt(l.length)),color:'#fff',weight:2.5,fillColor:cfg.farbe,fillOpacity:.92,bubblingMouseEvents:false});
       m.bindTooltip(`${vName(a)}: ${l.length} Sichtung${l.length===1?'':'en'}`,{direction:'top'});
-      m.bindPopup(()=>`<div class="pt">${esc(vName(a))}</div><div class="pd">${l.length} Sichtung${l.length===1?'':'en'} an dieser Stelle${l.length>10?', hier die 10 neuesten':''}</div>${l.slice(0,10).map(vBelegZeile).join('')}<div class="pd" style="margin:8px 0 0 0">Quelle: GBIF.org. Gemeldete Daten, nicht einzeln geprüft.</div>`,{maxWidth:320});
+      m.bindPopup(()=>`<div class="pt">${esc(vName(a))}${cfg.marke(a)}</div><div class="pd">${l.length} Sichtung${l.length===1?'':'en'} an dieser Stelle${l.length>10?', hier die 10 neuesten':''}</div>${l.slice(0,10).map(vBelegZeile).join('')}<div class="pd" style="margin:8px 0 0 0">Quelle: GBIF.org. Gemeldete Daten, nicht einzeln geprüft.</div>`,{maxWidth:320});
       m.addTo(vDichte); marken.push(m); });
     if(lauf!==vLauf) return;
     ordnenBald();
     if(marken.length){ const b=L.featureGroup(marken).getBounds(); if(b.isValid()) map.fitBounds(b,{maxZoom:14,padding:[50,50]}); }
-    vBannerZeigen(a,marken.length?`${vZahl.format(alle.length)}${gesamt>alle.length?' von '+vZahl.format(gesamt):''} Sichtungen an ${vZahl.format(marken.length)} Stellen. Punkt antippen für Datum und Quelle.`:'Keine Sichtungen mit Koordinaten gefunden.');
+    vBannerZeigen(a,marken.length?`${VZAHL.format(alle.length)}${gesamt>alle.length?' von '+VZAHL.format(gesamt):''} Sichtungen an ${VZAHL.format(marken.length)} Stellen. Punkt antippen für Datum und Quelle.`:'Keine Sichtungen mit Koordinaten gefunden.');
   }catch(e){ if(lauf===vLauf) vBannerZeigen(a,'Sichtungen konnten nicht geladen werden ('+e.message+').'); }
 }
-document.getElementById('v-liste').addEventListener('click',async e=>{
-  const knopf=e.target.closest('.vk'); const finde=k=>vArten.find(a=>a.k===+k);
-  if(knopf){ vAufKarte(finde(knopf.dataset.k)); return; }
-  const z=e.target.closest('.va'); if(!z) return;
-  if(z.nextElementSibling&&z.nextElementSibling.classList.contains('vd')){ z.nextElementSibling.remove(); return; }
-  const a=finde(z.dataset.k), box=document.createElement('div'); box.className='vd'; box.textContent='Wird geladen …'; z.after(box);
-  const s=await enrich({key:a.k,sci:a.sci,cls:'Aves',order:a.o,family:a.f,iucn:a.c,n:a.n});
-  box.innerHTML=spCard({...s,de:a.de||s.de,en:a.en||s.en})+`<button class="vk" data-k="${a.k}">Sichtungen auf der Karte zeigen</button>`;
-});
-document.getElementById('v-q').addEventListener('input',vZeichne);
-document.querySelectorAll('#a-voegel .btn').forEach(b=>b.onclick=()=>{ vModus=b.dataset.m; document.querySelectorAll('#a-voegel .btn').forEach(x=>x.classList.toggle('von',x===b)); vZeichne(); });
 function ansicht(a){
   document.querySelectorAll('#ansichten .tab').forEach(x=>x.classList.toggle('on',x.dataset.a===a));
-  document.getElementById('a-karte').hidden=a!=='karte'; document.getElementById('a-voegel').hidden=a!=='voegel';
-  document.body.classList.toggle('nurvoegel',a==='voegel'); document.getElementById('side').scrollTop=0;
-  setTimeout(()=>map.invalidateSize(),50); if(a==='voegel') vLaden();
+  document.getElementById('a-karte').hidden=a!=='karte'; REITER.forEach(c=>{c.el.hidden=c.id!==a;});
+  document.body.classList.toggle('nurliste',a!=='karte'); document.getElementById('side').scrollTop=0;
+  setTimeout(()=>map.invalidateSize(),50); const c=REITER.find(x=>x.id===a); if(c) vLaden(c);
 }
+REITER.forEach(cfg=>{
+  cfg.el=document.getElementById('a-'+cfg.id); cfg.modus=cfg.modi[0][0];
+  cfg.el.innerHTML=`<div class="pad"><h1>${esc(cfg.titel)}</h1><div class="sub vsub">Liste wird geladen …</div></div>
+    ${cfg.warnung?`<div class="warnung">${cfg.warnung}</div>`:''}
+    <input class="vq" placeholder="${esc(cfg.suche)}" autocomplete="off">
+    <div class="btnrow">${cfg.modi.map(([m,t],i)=>`<button class="btn${i?'':' von'}" data-m="${m}">${t}</button>`).join('')}</div>
+    <div class="vliste"></div><div class="src" style="padding-top:12px">${cfg.quelle}</div>`;
+  cfg.el.querySelector('.vliste').addEventListener('click',async e=>{
+    const finde=k=>cfg.arten.find(a=>a.k===+k), knopf=e.target.closest('.vk');
+    if(knopf){ vAufKarte(cfg,finde(knopf.dataset.k)); return; }
+    const z=e.target.closest('.va'); if(!z) return;
+    if(z.nextElementSibling&&z.nextElementSibling.classList.contains('vd')){ z.nextElementSibling.remove(); return; }
+    const a=finde(z.dataset.k), box=document.createElement('div'); box.className='vd'; box.textContent='Wird geladen …'; z.after(box);
+    const s=await enrich({key:a.k,sci:a.sci,cls:cfg.id==='voegel'?'Aves':'Squamata',order:a.o,family:a.f,iucn:a.c,n:a.n});
+    box.innerHTML=spCard({...s,de:a.de||s.de,en:a.en||s.en})+`<button class="vk" data-k="${a.k}">Sichtungen auf der Karte zeigen</button>`;
+  });
+  cfg.el.querySelector('.vq').addEventListener('input',()=>vZeichne(cfg));
+  cfg.el.querySelectorAll('.btn').forEach(b=>b.onclick=()=>{ cfg.modus=b.dataset.m; cfg.el.querySelectorAll('.btn').forEach(x=>x.classList.toggle('von',x===b)); vZeichne(cfg); });
+});
 document.querySelectorAll('#ansichten .tab').forEach(x=>x.onclick=()=>ansicht(x.dataset.a));
 
 RUHIG.forEach(r=>viertelMarke(r[0],r[2],r[3],r[1]));
@@ -858,7 +880,7 @@ map.on('zoomend',viertelSicht); viertelSicht();
 /* Jeder Server hat eine Frist: Hängt einer, läuft der Rest trotzdem weiter */
 ladeWdpa();
 ladeOrte();
-ladeSichtungen();
+REITER.forEach(ladeSichtungen);
 (async()=>{ await ladeNatur(); await ladeStrassen(); })();
 </script>
 </body>

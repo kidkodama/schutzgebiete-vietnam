@@ -22,16 +22,25 @@ const URL_ = 'https://kidkodama.github.io/schutzgebiete-vietnam/hanoi/?t=' + Dat
     await p.screenshot({ path: `test-bilder/${nm}-1-felder.png` });
     await p.evaluate(() => { map.closePopup(); });
     await p.screenshot({ path: `test-bilder/${nm}-1-felder.png` });
-    await tipp('#ansichten .tab[data-a=voegel]'); await p.waitForSelector('#v-liste details', { timeout: 30000 });
-    console.log('Liste', await p.textContent('#v-sub'));
-    await p.fill('#v-q', 'eisvogel'); await p.waitForTimeout(300); await tipp('.va'); await p.waitForSelector('.vk', { timeout: 30000 });
-    await p.waitForTimeout(1500); await p.screenshot({ path: `test-bilder/${nm}-2-art.png` });
-    await tipp('.vk');
-    try { await p.waitForFunction(() => /Stellen|Keine Sichtungen|nicht geladen/.test(document.querySelector('.vbanner')?.textContent || ''), { timeout: 60000 }); } catch (e) { console.log('Banner-Frist abgelaufen'); }
-    await p.waitForTimeout(3000);
-    console.log('Banner', await p.locator('.vbanner').textContent().catch(() => 'KEIN BANNER'));
-    console.log('Punkte', JSON.stringify(await p.evaluate(() => { let n = 0, ll = null; if (vDichte) vDichte.eachLayer(l => { n++; ll = ll || l.getLatLng(); }); return { n, ll, zoom: map.getZoom(), karte: document.getElementById('map').offsetHeight, an: !!vDichte && map.hasLayer(vDichte) }; })));
-    await p.screenshot({ path: `test-bilder/${nm}-3-punkte.png` });
+    for (const [id, suche] of [['voegel', 'eisvogel'], ['schlangen', 'kobra']]) {
+      await tipp(`#ansichten .tab[data-a=${id}]`); await p.waitForSelector(`#a-${id} .vliste details`, { timeout: 30000 });
+      console.log(id, await p.textContent(`#a-${id} .vsub`));
+      console.log(' Gruppen', JSON.stringify(await p.$$eval(`#a-${id} .vliste summary`, x => x.map(y => y.textContent))));
+      await p.screenshot({ path: `test-bilder/${nm}-${id}-liste.png` });
+      await p.fill(`#a-${id} .vq`, suche); await p.waitForTimeout(300); await tipp(`#a-${id} .va`); await p.waitForSelector(`#a-${id} .vk`, { timeout: 30000 });
+      await p.waitForTimeout(1500); await tipp(`#a-${id} .vk`);
+      try { await p.waitForFunction(() => /Stellen|Keine Sichtungen|nicht geladen/.test(document.querySelector('.vbanner')?.textContent || ''), { timeout: 60000 }); } catch (e) { console.log('Banner-Frist abgelaufen'); }
+      await p.waitForTimeout(2500);
+      console.log(' Banner', await p.locator('.vbanner').textContent().catch(() => 'KEIN BANNER'));
+      await p.screenshot({ path: `test-bilder/${nm}-${id}-punkte.png` });
+      await p.locator('.vbanner button').click({ force: true }).catch(() => {});
+      await p.evaluate(() => { document.querySelectorAll('#g-natur label input').forEach(i => { if (!i.checked) i.click(); }); });
+      await tipp('#ansichten .tab[data-a=karte]');
+    }
+    await p.waitForTimeout(800);
+    console.log('Sichtungen', JSON.stringify(await p.evaluate(() => ({ v: groups.voegel.getLayers().length, s: groups.schlangen.getLayers().length, auf: map.hasLayer(groups.schlangen) }))), await p.textContent('#st-schlangen'));
+    await p.evaluate(() => map.setView([21.03, 105.85], 12, { animate: false })); await p.waitForTimeout(2500);
+    await p.screenshot({ path: `test-bilder/${nm}-4-alle.png` });
     delete akt.gezeigt; console.log('Abrufe', JSON.stringify(akt));
     await b.close();
   }
