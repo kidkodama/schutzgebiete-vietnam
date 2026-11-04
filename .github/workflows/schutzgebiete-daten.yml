@@ -1,0 +1,21 @@
+name: Schutzgebiete-Daten holen
+on:
+  push:
+    paths: ['.github/workflows/schutzgebiete-daten.yml','werkzeug/schutzgebiete_daten.py']
+  schedule:
+    - cron: '41 4 2 * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  holen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p daten && python3 werkzeug/schutzgebiete_daten.py
+      - run: |
+          git config user.name "schutzgebiete-daten"
+          git config user.email "schutzgebiete-daten@users.noreply.github.com"
+          git add daten
+          git diff --cached --quiet || { git commit -m "Schutzgebiete-Daten aktualisiert"; git pull --rebase origin main; git push; }

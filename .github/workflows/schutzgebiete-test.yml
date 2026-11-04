@@ -1,0 +1,28 @@
+name: Schutzgebiete-Karte live testen
+on:
+  push:
+    paths: ['.github/workflows/schutzgebiete-test.yml','werkzeug/test_schutzgebiete.js','index.html']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  testen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: |
+          sleep 60   # GitHub Pages braucht nach einem Push etwas, bis die neue Fassung ausgeliefert wird
+          mkdir -p werkstatt test-bilder
+          cd werkstatt && npm init -y >/dev/null && npm i playwright >/dev/null && npx playwright install --with-deps webkit chromium >/dev/null
+          cd .. && NODE_PATH=werkstatt/node_modules node werkzeug/test_schutzgebiete.js 2>&1 | tee test-bilder/bericht.txt
+      - run: |
+          git config user.name "schutzgebiete-test"
+          git config user.email "schutzgebiete-test@users.noreply.github.com"
+          git checkout --orphan test-schutz-neu
+          git rm -rfq --cached .
+          git add -f test-bilder
+          git commit -qm "Testlauf"
+          git push -f origin HEAD:test-schutzgebiete
