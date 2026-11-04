@@ -39,7 +39,7 @@ const URL_ = 'https://kidkodama.github.io/schutzgebiete-vietnam/hanoi/?t=' + Dat
     }
     await p.waitForTimeout(800);
     console.log('Sichtungen', JSON.stringify(await p.evaluate(() => ({ v: groups.voegel.getLayers().length, s: groups.schlangen.getLayers().length, auf: map.hasLayer(groups.schlangen) }))), await p.textContent('#st-schlangen'));
-    await p.evaluate(() => map.setView([21.03, 105.85], 12, { animate: false })); await p.waitForTimeout(2500);
+    await p.evaluate(() => { map.setView([21.03, 105.85], 12, { animate: false }); }); await p.waitForTimeout(2500);
     await p.screenshot({ path: `test-bilder/${nm}-4-alle.png` });
     delete akt.gezeigt; console.log('Abrufe', JSON.stringify(akt));
     await b.close();
