@@ -1,0 +1,6 @@
+=== ipad
+nach 1 s: geladen: 191 Gebiete · Beim Öffnen wurden 191 Schutzgebiete (188 mit Flächengeometrie, 3 nur als Punkt) aus der Abschrift der WDPA vom 2026-11-04 geladen. Die Summe von 70.187 km² ist eine reine Addition der gemeldeten Flächen und enthält Mehrfachzählungen durch überlappende Ausweisungen.
+Abrufe {"kidkodama.github.io 200":1,"cdnjs.cloudflare.com 200":3,"a.tile.openstreetmap.org 200":5,"c.tile.openstreetmap.org 200":5,"kidkodama.github.io/schutzgebiete-vietnam/daten/wdpa-flaechen.geojson 200":1,"b.tile.openstreetmap.org 200":6,"kidkodama.github.io/schutzgebiete-vietnam/daten/wdpa-punkte.geojson 200":1}
+=== chrome
+nach 1 s: geladen: 191 Gebiete · Beim Öffnen wurden 191 Schutzgebiete (188 mit Flächengeometrie, 3 nur als Punkt) aus der Abschrift der WDPA vom 2026-11-04 geladen. Die Summe von 70.187 km² ist eine reine Addition der gemeldeten Flächen und enthält Mehrfachzählungen durch überlappende Ausweisungen.
+Abrufe {"kidkodama.github.io 200":1,"cdnjs.cloudflare.com 200":3,"kidkodama.github.io/schutzgebiete-vietnam/daten/wdpa-flaechen.geojson 200":1,"kidkodama.github.io/schutzgebiete-vietnam/daten/wdpa-punkte.geojson 200":1,"a.tile.openstreetmap.org 200":5,"b.tile.openstreetmap.org 200":6,"c.tile.openstreetmap.org 200":5,"c.tiles.openrailwaymap.org 200":5,"a.tiles.openrailwaymap.org 200":5,"b.tiles.openrailwaymap.org 200":6}
