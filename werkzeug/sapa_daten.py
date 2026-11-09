@@ -12,7 +12,7 @@ TEILE = {
  "orte-alltag": f'(nwr["amenity"~"^(hospital|clinic|pharmacy|marketplace|police)$"]["name"]({G});nwr["shop"~"^(supermarket|mall)$"]["name"]({G});nwr["office"~"^(government)$"]["name"]({G});nwr["tourism"~"^(guest_house|hostel|alpine_hut|camp_site)$"]["name"]({G}););out tags center;',
  "orte-stadt": f'(node["place"~"^(town|village|hamlet|suburb|quarter|neighbourhood)$"]["name"]({K});nwr["railway"="station"]["name"]({G});nwr["amenity"="bus_station"]["name"]({G}););out tags center;',
  "wege": f'way["highway"~"^(path|track|footway|steps|bridleway)$"]({G});out tags geom;',
- "routen": f'relation["route"~"^(hiking|foot|walking)$"]({G});out tags geom;',
+ "routen": f'relation["route"~"^(hiking|foot|walking)$"]({G});out geom;',
 }
 def hole(abfrage):
     koerper = urllib.parse.urlencode({"data": "[out:json][timeout:170];" + abfrage}).encode()
