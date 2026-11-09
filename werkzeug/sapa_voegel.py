@@ -47,7 +47,8 @@ def wiki_titel(sprache, namen):
         da = {s["title"] for s in j.get("pages", []) if not s.get("missing") and not s.get("invalid")}
         for n, w in um.items():
             ti = re.sub(r"\s*\(.*\)$", "", w).strip()
-            if w in da and ti and ti.lower() != n.lower(): aus[n] = ti
+            # Titel, die mit dem Gattungsnamen beginnen, sind keine Trivialnamen (z. B. Umleitung auf Nachbarart)
+            if w in da and ti and ti.lower() != n.lower() and ti.split()[0].lower() != n.split()[0].lower(): aus[n] = ti
         time.sleep(1)
     print(" Wikipedia", sprache, len(aus))
     return aus
