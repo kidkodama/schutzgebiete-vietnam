@@ -1,0 +1,21 @@
+name: Sa-Pa-Daten holen
+on:
+  push:
+    paths: ['.github/workflows/sapa-daten.yml','werkzeug/sapa_daten.py']
+  schedule:
+    - cron: '23 3 * * 2'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  holen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p sapa/daten && python3 werkzeug/sapa_daten.py
+      - run: |
+          git config user.name "sapa-daten"
+          git config user.email "sapa-daten@users.noreply.github.com"
+          git add sapa/daten
+          git diff --cached --quiet || { git commit -m "Sa-Pa-Daten aktualisiert"; git pull --rebase origin main; git push; }
