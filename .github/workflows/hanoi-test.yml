@@ -1,7 +1,7 @@
-name: Hanoi-Karte live testen
+name: Hanoi- und Sa-Pa-Karte live testen
 on:
   push:
-    paths: ['.github/workflows/hanoi-test.yml','werkzeug/test_live.js']
+    paths: ['.github/workflows/hanoi-test.yml','werkzeug/test_live.js','werkzeug/test_sapa.js','sapa/index.html']
   workflow_dispatch:
 permissions:
   contents: write
@@ -17,6 +17,7 @@ jobs:
           mkdir -p werkstatt test-bilder
           cd werkstatt && npm init -y >/dev/null && npm i playwright >/dev/null && npx playwright install --with-deps webkit chromium >/dev/null
           cd .. && NODE_PATH=werkstatt/node_modules node werkzeug/test_live.js 2>&1 | tee test-bilder/bericht.txt
+          NODE_PATH=werkstatt/node_modules node werkzeug/test_sapa.js 2>&1 | tee test-bilder/bericht-sapa.txt
       - run: |
           git config user.name "hanoi-test"
           git config user.email "hanoi-test@users.noreply.github.com"

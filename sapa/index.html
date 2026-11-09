@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sa Pa">
+<title>Sa Pa – Natur und Wandern</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root{
+    --bg:#0f1418; --panel:#161d23; --panel2:#1d262e; --line:#2b3843;
+    --text:#e8edf1; --muted:#94a5b3; --accent:#4db6ac;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text)}
+  #app{display:flex;height:100%;width:100%}
+  #side{width:370px;min-width:370px;height:100%;overflow-y:auto;background:var(--panel);border-right:1px solid var(--line)}
+  #map{flex:1;height:100%;background:#0b1013}
+  h1{font-size:17px;margin:0 0 4px 0;letter-spacing:.2px}
+  h2{font-size:12px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin:18px 0 8px 0;font-weight:600}
+  .pad{padding:16px 16px 4px 16px}
+  .sub{font-size:12px;color:var(--muted);line-height:1.5}
+  .stats{display:flex;gap:8px;margin:12px 0 4px 0}
+  .stat{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+  .stat b{display:block;font-size:19px;line-height:1.15}
+  .stat span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .cat{display:flex;align-items:center;gap:9px;padding:6px 16px;cursor:pointer;font-size:13px;user-select:none}
+  .cat:hover{background:var(--panel2)}
+  .cat input{accent-color:var(--accent);margin:0;cursor:pointer}
+  .sw{width:15px;height:15px;border-radius:3px;flex:0 0 15px}
+  .cat .nm{flex:1;line-height:1.3}
+  .cat .nm small{display:block;color:var(--muted);font-size:11px}
+  .cat .ct{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px}
+  .off{opacity:.42}
+  #q{width:calc(100% - 32px);margin:4px 16px 8px 16px;padding:8px 10px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:13px}
+  #q:focus{outline:1px solid var(--accent)}
+  #hits{max-height:230px;overflow-y:auto;margin:0 8px}
+  .hit{padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12.5px;line-height:1.35}
+  .hit:hover{background:var(--panel2)}
+  .hit small{color:var(--muted);display:block}
+  .src{font-size:11.5px;color:var(--muted);line-height:1.6;padding:0 16px 20px 16px}
+  .src a{color:var(--accent);text-decoration:none}
+  .src a:hover{text-decoration:underline}
+  .src p{margin:0 0 9px 0}
+  .note{background:var(--panel2);border-left:2px solid var(--accent);padding:9px 11px;margin:0 16px 12px 16px;font-size:11.5px;color:var(--muted);line-height:1.55;border-radius:0 6px 6px 0}
+  .leaflet-popup-content-wrapper{background:#111a20;color:var(--text);border-radius:9px}
+  .leaflet-popup-tip{background:#111a20}
+  .leaflet-popup-content{margin:12px 14px;font-size:12.5px;line-height:1.5;max-height:340px;overflow:auto}
+  .pt{font-size:14.5px;font-weight:600;margin-bottom:2px;line-height:1.25}
+  .pd{font-size:11.5px;color:var(--muted);margin-bottom:9px}
+  table.pk{border-collapse:collapse;width:100%}
+  table.pk td{padding:2.5px 0;vertical-align:top;font-size:12px}
+  table.pk td:first-child{color:var(--muted);padding-right:12px;white-space:nowrap}
+  .badge{display:inline-block;padding:1.5px 7px;border-radius:20px;font-size:10.5px;font-weight:600;color:#08131a}
+  #ovl{position:absolute;inset:0;background:rgba(11,16,19,.93);display:flex;align-items:center;justify-content:center;z-index:2000;font-size:13.5px;color:var(--muted);text-align:center;padding:20px}
+  #ovl b{color:var(--text)}
+  .leaflet-control-attribution{background:rgba(0,0,0,.65)!important;color:#aab!important;font-size:10px!important}
+  .leaflet-control-attribution a{color:var(--accent)!important}
+  .btnrow{display:flex;gap:6px;padding:2px 16px 10px 16px}
+  .btn{flex:1;padding:6px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--muted);font-size:11.5px;cursor:pointer}
+  .btn:hover{color:var(--text);border-color:var(--accent)}
+  /* ---- Artenpanel ---- */
+  #panel{width:0;min-width:0;height:100%;overflow:hidden;background:var(--panel);border-left:1px solid var(--line);transition:width .18s ease}
+  #panel.open{width:400px;min-width:400px;overflow-y:auto}
+  #panel .ph{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line);padding:14px 16px 12px 16px;z-index:5}
+  #panel .ph h3{margin:0 0 6px 0;font-size:16px;line-height:1.25;padding-right:26px}
+  #close{position:absolute;top:11px;right:12px;background:none;border:none;color:var(--muted);font-size:19px;cursor:pointer;line-height:1}
+  #close:hover{color:var(--text)}
+  .pmeta{font-size:11.5px;color:var(--muted);line-height:1.5}
+  /* ---- Verkehr ---- */
+  .apin{background:none;border:none}
+  .ap{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      background:#12395e;border:2px solid #7ec8ff;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
+  .ap svg{width:12px;height:12px;fill:#cfe9ff}
+  .ap.dom{width:17px;height:17px;background:#1d2a36;border-color:#8fa6b8}
+  .ap.dom svg{width:9px;height:9px;fill:#c3d2de}
+  .ap.soon{background:#3b2a12;border-color:#ffb74d}
+  .ap.soon svg{fill:#ffd9a0}
+  .apl{position:absolute;left:26px;top:2px;font-size:10px;font-weight:700;color:#0d1318;background:rgba(215,235,255,.9);
+       padding:0 3px;border-radius:3px;white-space:nowrap;letter-spacing:.3px}
+  .traffic{padding:2px 0 6px 0}
+  .lstat{font-size:10.5px;color:var(--muted);padding:0 16px 8px 44px;line-height:1.45}
+  .tabs{display:flex;gap:4px;margin-top:11px;background:var(--panel2);padding:3px;border-radius:8px}
+  .tab{flex:1;padding:6px 4px;border:none;border-radius:6px;background:none;color:var(--muted);font-size:11.5px;font-weight:600;cursor:pointer;letter-spacing:.2px}
+  .tab:hover{color:var(--text)}
+  .tab.on{background:var(--accent);color:#06231f}
+  #zoom{position:fixed;display:none;z-index:9000;pointer-events:none;background:#0b1013;border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.65)}
+  #zoom img{display:block;width:100%;height:auto;min-height:110px;max-height:300px;object-fit:contain;border-radius:6px;background:#161d23}
+  img.spimg{cursor:zoom-in}
+  .modebar{margin:10px 16px 4px 16px;font-size:11px;color:var(--muted);background:var(--panel2);border-radius:6px;padding:8px 10px;line-height:1.5}
+  .modebar b{color:var(--text)}
+  .grp{font-size:11px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);padding:16px 16px 6px 16px;font-weight:600}
+  .sp{display:flex;gap:11px;padding:10px 16px;border-bottom:1px solid rgba(43,56,67,.55)}
+  .sp:hover{background:var(--panel2)}
+  .spimg{width:84px;height:84px;flex:0 0 84px;border-radius:7px;object-fit:cover;background:var(--panel2);border:1px solid var(--line)}
+  .spimg.ph2{display:flex;align-items:center;justify-content:center;font-size:22px;color:#3d4c58}
+  .spb{flex:1;min-width:0}
+  .spn{font-size:13.5px;font-weight:600;line-height:1.3}
+  .spl{font-size:11.5px;color:var(--muted);font-style:italic;margin-bottom:5px}
+  .spx{font-size:11.5px;color:#c3ced7;line-height:1.5;margin-bottom:6px}
+  .spf{font-size:10.5px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .spf a{color:var(--accent);text-decoration:none}
+  .spf a:hover{text-decoration:underline}
+  .iucn{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;color:#0d0f11;letter-spacing:.3px}
+  .i-CR{background:#e53935;color:#fff}.i-EN{background:#fb8c00}.i-VU{background:#fdd835}
+  .i-NT{background:#c0ca33}.i-LC{background:#66bb6a}.i-DD,.i-NE{background:#78909c;color:#fff}
+  .spin{padding:24px 16px;color:var(--muted);font-size:12.5px}
+  .credit{font-size:10px;color:#6d7c88;padding:14px 16px 24px 16px;line-height:1.6}
+  .credit a{color:var(--accent);text-decoration:none}
+  .hintbtn{display:block;margin:8px 16px 0 16px;padding:7px;border-radius:6px;border:1px solid var(--line);background:var(--panel2);color:var(--muted);font-size:11.5px;cursor:pointer;width:calc(100% - 32px)}
+  .hintbtn:hover{color:var(--text);border-color:var(--accent)}
+  @media(max-width:820px){#app{flex-direction:column}#side{width:100%;min-width:0;height:47%;border-right:none;border-bottom:1px solid var(--line)}#map{height:53%}
+    #panel.open{width:100%;min-width:0;height:60%;border-left:none;border-top:1px solid var(--line)}}
+</style>
+<style>
+  .place{background:none;border:none;color:#e8edf1;font-size:11px;font-weight:600;text-shadow:0 0 3px #000,0 0 3px #000;white-space:nowrap}
+  .place.ruhig{color:#7ff0dc;font-size:12.5px}
+  .lstat{padding-left:16px}
+  .vbanner button{display:inline-block!important;margin-right:12px}
+  @media(max-width:820px){.leaflet-bottom.leaflet-left{margin-bottom:34px}}
+  #ansichten{position:sticky;top:0;z-index:20;margin:0;border-radius:0;background:var(--panel2);border-bottom:1px solid var(--line)}
+  .vq{width:calc(100% - 32px);margin:10px 16px 8px 16px;padding:8px 10px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:13px}
+  .btn.von{color:#06231f;background:var(--accent);border-color:var(--accent);font-weight:600}
+  .vliste details{border-top:1px solid var(--line)}
+  .vliste summary{padding:10px 16px;cursor:pointer;font-size:13.5px;font-weight:600;display:flex;gap:8px;align-items:baseline}
+  .vliste summary small{color:var(--muted);font-weight:400;font-style:italic;flex:1;font-size:11.5px}
+  .vliste summary span{color:var(--muted);font-weight:400;font-size:12px}
+  .fam{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);padding:9px 16px 3px 16px}
+  .va{padding:7px 16px;cursor:pointer;font-size:13px;line-height:1.3;border-top:1px solid rgba(43,56,67,.4)}
+  .va:hover{background:var(--panel2)}
+  .va small{display:block;color:var(--muted);font-size:11px}
+  .va .zn{color:var(--muted);font-size:11px;float:right}
+  .vd .sp{border-bottom:none;padding:8px 0}.vd{padding:0 16px 10px 16px;background:var(--panel2)}
+  .vk{margin-top:2px;width:100%;padding:7px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--accent);font-size:12px;cursor:pointer}
+  .warnung{background:#3a1518;border-left:3px solid #ef5350;margin:0 16px 10px 16px;padding:9px 11px;font-size:12px;line-height:1.5;border-radius:0 6px 6px 0}
+  .gift{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#e53935;color:#fff}.gift.schwach{background:#fb8c00;color:#111}
+  .vbanner{background:#111a20;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:8px 11px;font-size:12px;line-height:1.45;max-width:260px}
+  .vbanner button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;padding:5px 0 0 0;display:block}
+  .fern .place:not(.ruhig){display:none}
+  .wiki{margin-top:9px;color:#c3ced7;font-size:12px;line-height:1.5}
+  .wiki img{display:block;max-width:100%;max-height:150px;border-radius:6px;margin-bottom:7px}
+  @media(max-width:820px){.nurliste #side{flex:1 1 100%}.nurliste #map{display:none}#panel:not(.open){height:0;border:0}#side{flex:0 0 42%}#map{flex:1;height:auto}#panel.open{flex:0 0 55%}}
+  .lnk{margin-top:9px;font-size:11.5px}.lnk a{color:#4db6ac;margin-right:10px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="side">
+    <div id="ansichten" class="tabs"><button class="tab on" data-a="karte">Karte</button><button class="tab" data-a="voegel">Vögel</button><button class="tab" data-a="schlangen">Schlangen</button><button class="tab" data-a="wandern">Wandern</button></div>
+    <div id="a-voegel" hidden></div>
+    <div id="a-schlangen" hidden></div>
+    <div id="a-wandern" hidden></div>
+    <div id="a-karte">
+    <div class="pad">
+      <h1>Sa Pa – Natur und Wandern</h1>
+      <div class="sub"><b style="color:var(--accent)">Grünfläche oder Schutzgebiet antippen</b> → rechts erscheinen die dort nachgewiesenen Arten mit Bild.<br><b style="color:var(--accent)">Freie Stelle antippen</b> → Abstand zur nächsten Hauptstraße, zu Park, Krankenhaus und Supermarkt.</div>
+      <div class="stats">
+        <div class="stat"><b id="s-n">–</b><span>Naturflächen</span></div>
+        <div class="stat"><b id="s-a">–</b><span>Schutzgebiete</span></div>
+        <div class="stat"><b id="s-y">–</b><span>Orte</span></div>
+      </div>
+    </div>
+    <h2 style="padding-left:16px">Natur und Tiere</h2><div id="g-natur"></div><div class="lstat" id="st-natur"></div>
+    <div class="lstat" id="st-voegel"></div>
+    <div class="lstat" id="st-schlangen"></div>
+    <h2 style="padding-left:16px">Schutzgebiete um Sa Pa</h2><div id="g-wdpa"></div><div class="lstat" id="st-wdpa"></div>
+    <h2 style="padding-left:16px">Orte, Wege und Verkehr</h2><div id="g-stadt"></div><div class="lstat" id="st-stadt"></div>
+    <h2 style="padding-left:16px">Sehenswertes und Alltag</h2><div id="g-orte"></div><div class="lstat" id="st-orte"></div>
+    <h2 style="padding-left:16px">Suche</h2>
+    <input id="q" placeholder="Name, z. B. Hồ Tây, Văn Miếu …" autocomplete="off">
+    <div id="hits"></div>
+    <h2 style="padding-left:16px">Quellen und Grenzen</h2>
+    <div class="src">
+      <p><b>Flächen, Orte, Straßen:</b> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende (ODbL), wöchentlich automatisch abgerufen und mit der Karte ausgeliefert. Das Gerät speichert sie und erneuert sie nach 14 Tagen.</p>
+      <p><b>Schutzgebiete:</b> UNEP-WCMC &amp; IUCN, <a href="https://www.protectedplanet.net/country/VNM" target="_blank" rel="noopener">World Database on Protected Areas</a>, live abgefragt, Ausschnitt um Hanoi.</p>
+      <p><b>Arten:</b> <a href="https://www.gbif.org/occurrence/search" target="_blank" rel="noopener">GBIF</a>, IUCN-Status über GBIF, Texte und Bilder aus Wikipedia/Wikimedia.</p>
+      <p><b>Vogelsichtungen:</b> violette Punkte und Reiter „Vögel“ aus GBIF (Klasse Aves), wöchentlich abgerufen, zu Stellen von rund 200 m zusammengefasst. Sie zeigen, wo und was gemeldet wurde, über alle Jahre und Jahreszeiten. Viele Meldungen bedeuten auch: viele Beobachter. Aktuelle Sichtungen: <a href="https://ebird.org/region/VN" target="_blank" rel="noopener">eBird, Vietnam</a>.</p>
+      <p><b>Grenzen, bitte beachten:</b></p>
+      <p>• <b>Ruhe ist hier nicht gemessen.</b> Die Karte zeigt Luftlinien zu Hauptstraßen. Es gibt keine Lärmdaten; Baustellen, Märkte und Motorroller in kleinen Gassen erfasst sie nicht.</p>
+      <p>• <b>Ein Weg auf der Karte heißt nicht, dass er begehbar oder erlaubt ist.</b> Wege stammen aus OpenStreetMap und sind nicht geprüft. Zustand, Erdrutsche nach Regen und Zugangsregeln im Nationalpark vor Ort erfragen.</p>
+      <p>• OpenStreetMap ist freiwillig gepflegt und nicht vollständig. Öffnungszeiten und Telefonnummern können veraltet sein; bei Krankenhäusern und Behörden vorher prüfen.</p>
+      <p>• Vietnams Verwaltung wurde 2025 umgebaut. Namen und Grenzen können im Datenbestand noch der alten Gliederung folgen.</p>
+      <p>• Artenlisten sind Nachweise aus GBIF, keine amtlichen Listen. Viel beobachtete Parks wirken artenreicher.</p>
+    </div>
+    </div>
+  </div>
+  <div id="map"></div>
+  <aside id="panel"></aside>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+const SERVICE='https://services5.arcgis.com/Mj0hjvkNtV7NRhA7/arcgis/rest/services/WDPA_v0/FeatureServer';
+const OVERPASS=['https://overpass.kumi.systems/api/interpreter','https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter'];
+const BB_GANZ='22.15,103.60,22.55,104.05', BB_KERN=BB_GANZ;
+const TAGE14=14*864e5;
+const map=L.map('map',{zoomControl:true,renderer:L.canvas({tolerance:7,padding:.5})}).setView([22.335,103.843],12);
+const osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap-Mitwirkende'});
+const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:18,attribution:'Esri, Maxar, Earthstar Geographics'});
+const light=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16,attribution:'Esri, HERE, Garmin, © OpenStreetMap-Mitwirkende'});
+const strasse=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Esri, HERE, Garmin, © OpenStreetMap-Mitwirkende'});
+const topo=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Esri, HERE, Garmin, FAO, NOAA, USGS, © OpenStreetMap-Mitwirkende'});
+const otm=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenStreetMap-Mitwirkende, SRTM | Darstellung: © OpenTopoMap (CC-BY-SA)'});
+topo.addTo(map);
+L.control.layers({'Topo (Esri)':topo,'Höhenlinien (OpenTopoMap)':otm,'Stadtplan (Esri)':strasse,'OpenStreetMap':osm,'Hell (Esri Gray)':light,'Satellit (Esri)':sat},null,{position:'topright'}).addTo(map);
+
+/* Kategorien: k = Schlüssel, an = beim Start sichtbar */
+const KAT={
+ park:{c:'#7cc043',de:'Park',g:'natur',an:1}, garten:{c:'#12833f',de:'Garten / Botanischer Garten',g:'natur',an:1},
+ wasser:{c:'#2196f3',de:'See / Gewässer',g:'natur',an:1}, zoo:{c:'#d3a017',de:'Zoo',g:'natur',an:1},
+ reservat:{c:'#26c6da',de:'Nationalpark und Reservat (OpenStreetMap)',g:'natur',an:1},
+ voegel:{c:'#7c00ff',de:'Vogelsichtungen (violette Punkte)',g:'natur',an:1},
+ schlangen:{c:'#ff6d00',de:'Schlangensichtungen (orange Punkte)',g:'natur',an:1},
+ wdpa:{c:'#ff7043',de:'Gemeldetes Schutzgebiet (WDPA)',g:'wdpa',an:1},
+ ruhig:{c:'#7ff0dc',de:'Städte',g:'stadt',an:1},
+ routen:{c:'#ff4081',de:'Wanderrouten (Reiter „Wandern“)',g:'stadt',an:1},
+ wege:{c:'#ffd54f',de:'Pfade und Feldwege',g:'stadt',an:1},
+ viertel:{c:'#cfd8dc',de:'Dörfer und Weiler',g:'stadt',an:1},
+ strasse:{c:'#e53935',de:'Hauptstraßen',g:'stadt',an:0},
+ verkehr:{c:'#7ec8ff',de:'Bahnhöfe, Busbahnhöfe, Seilbahn',g:'stadt',an:0},
+ bahn:{c:'#c9a227',de:'Schienennetz (OpenRailwayMap)',g:'stadt',an:0},
+ sehen:{c:'#ec407a',de:'Sehenswertes',g:'orte',an:1}, markt:{c:'#ffb74d',de:'Märkte und Supermärkte',g:'orte',an:0},
+ gesund:{c:'#ef5350',de:'Krankenhäuser, Kliniken, Apotheken',g:'orte',an:0}, amt:{c:'#ab47bc',de:'Behörden und Polizei',g:'orte',an:0},
+ unterkunft:{c:'#a1887f',de:'Homestays und Unterkünfte',g:'orte',an:0}
+};
+/* Lage = ein Ort dieses Viertels aus OpenStreetMap, also nur ungefähr die Mitte */
+const RUHIG=[];
+const groups={}, records=[], zaehler={}, strassen=[], naturPunkte=[], orte=[];
+Object.keys(KAT).forEach(k=>{groups[k]=L.layerGroup(); zaehler[k]=0; if(KAT[k].an) groups[k].addTo(map);});
+groups.bahn=L.tileLayer('https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',{maxZoom:19,opacity:.9,attribution:'Bahndaten: OpenRailwayMap (ODbL)'});
+const fmtN=n=>(n==null||isNaN(n))?'–':Number(n).toLocaleString('de-DE',{maximumFractionDigits:2});
+const nr=v=>(v==null||v===''||v==='Not Reported'||v==='Not Applicable')?null:v;
+const meta=d=>KAT[d]?{c:KAT[d].c,de:KAT[d].de}:{c:'#90a4ae',de:d||'Sonstige'};
+const setz=(id,t)=>{const e=document.getElementById(id); if(e) e.textContent=t;};
+
+/* Laden mit Gerätespeicher: frisch → Speicher; sonst Netz; Netz scheitert → alter Speicher */
+async function ausSpeicher(key){ try{ const c=await caches.open('sapa-karte-1'); const r=await c.match('/daten/'+key); return r?await r.json():null; }catch(e){ return null; } }
+async function inSpeicher(key,daten){ try{ const c=await caches.open('sapa-karte-1'); await c.put('/daten/'+key,new Response(JSON.stringify({zeit:Date.now(),daten}))); }catch(e){} }
+async function laden(key,holen){
+  const alt=await ausSpeicher(key);
+  if(alt&&Date.now()-alt.zeit<TAGE14) return {daten:alt.daten,alt:alt.zeit};
+  try{ const d=await holen(); await inSpeicher(key,d); return {daten:d}; }
+  catch(e){ if(alt) return {daten:alt.daten,alt:alt.zeit,veraltet:1}; throw e; }
+}
+const WARTEZEIT=60000;
+async function mitFrist(u,opt){ const ab=new AbortController(); const uhr=setTimeout(()=>ab.abort(),WARTEZEIT);
+  try{ const r=await fetch(u,{...opt,signal:ab.signal}); const text=await r.text(); return {r,text}; }
+  catch(e){ throw e.name==='AbortError'?new Error('Server antwortet nicht'):e; }
+  finally{ clearTimeout(uhr); } }
+async function overpass(abfrage){
+  let fehler;
+  for(const u of OVERPASS){
+    try{ const {text:t}=await mitFrist(u,{method:'POST',body:'data='+encodeURIComponent('[out:json][timeout:120];'+abfrage),headers:{'Content-Type':'application/x-www-form-urlencoded'}});
+      if(!t.trim().startsWith('{')){fehler=new Error('Server ausgelastet');continue;}
+      return JSON.parse(t);
+    }catch(e){fehler=e;}
+  }
+  throw fehler||new Error('Overpass nicht erreichbar');
+}
+
+/* Zuerst die mit der Karte ausgelieferte Datei, nur ersatzweise die Overpass-Server */
+async function osmDaten(key,abfrage){
+  for(const u of [`daten/${key}.json`,`https://raw.githubusercontent.com/kidkodama/schutzgebiete-vietnam/main/sapa/daten/${key}.json`]){
+    try{ const {r,text}=await mitFrist(u,{}); if(r.ok){ const j=JSON.parse(text); if(j.elements&&j.elements.length) return j; } }catch(e){}
+  }
+  return overpass(abfrage);
+}
+/* OSM-Geometrie → GeoJSON */
+function ringe(members){
+  const teile=members.filter(m=>m.type==='way'&&m.role!=='inner'&&m.geometry).map(m=>m.geometry.map(p=>[p.lon,p.lat]));
+  const fertig=[];
+  while(teile.length){
+    let r=teile.shift(), weiter=true;
+    while(weiter&&(r[0][0]!==r[r.length-1][0]||r[0][1]!==r[r.length-1][1])){
+      weiter=false;
+      for(let i=0;i<teile.length;i++){ const t=teile[i], e=r[r.length-1];
+        if(t[0][0]===e[0]&&t[0][1]===e[1]){r=r.concat(t.slice(1));}
+        else if(t[t.length-1][0]===e[0]&&t[t.length-1][1]===e[1]){r=r.concat([...t].reverse().slice(1));}
+        else continue;
+        teile.splice(i,1); weiter=true; break; }
+    }
+    if(r.length>=4&&r[0][0]===r[r.length-1][0]&&r[0][1]===r[r.length-1][1]) fertig.push(r);
+  }
+  return fertig;
+}
+function geometrie(e){
+  if(e.type==='node') return {type:'Point',coordinates:[e.lon,e.lat]};
+  if(e.type==='way'&&e.geometry){ const r=e.geometry.map(p=>[p.lon,p.lat]);
+    return r.length>=4&&r[0][0]===r[r.length-1][0]&&r[0][1]===r[r.length-1][1]?{type:'Polygon',coordinates:[r]}:{type:'LineString',coordinates:r}; }
+  if(e.type==='relation'&&e.members){ const r=ringe(e.members); if(!r.length) return null;
+    return r.length===1?{type:'Polygon',coordinates:[r[0]]}:{type:'MultiPolygon',coordinates:r.map(x=>[x])}; }
+  return null;
+}
+function naturArt(t){ if(t.natural==='water')return'wasser'; if(t.boundary)return'reservat'; if(t.tourism==='zoo')return'zoo'; if(t.leisure==='nature_reserve')return'reservat'; if(t.leisure==='garden')return'garten'; return'park'; }
+function ortArt(t){
+  if(t.amenity==='hospital'||t.amenity==='clinic'||t.amenity==='pharmacy')return'gesund';
+  if(t.amenity==='marketplace'||t.shop==='supermarket'||t.shop==='mall')return'markt';
+  if(t.amenity==='police'||t.office==='government'||t.office==='diplomatic'||t.amenity==='embassy')return'amt';
+  if(/^(guest_house|hostel|alpine_hut|camp_site)$/.test(t.tourism||''))return'unterkunft';
+  if(t.railway==='station'||t.amenity==='bus_station'||t.aerialway==='station')return'verkehr';
+  return'sehen';
+}
+const ORTTYP=t=>({peak:'Gipfel'+(t.ele?' · '+t.ele+' m':''),waterfall:'Wasserfall',cave_entrance:'Höhle',saddle:'Pass'+(t.ele?' · '+t.ele+' m':'')}[t.natural]
+  ||(t.aerialway==='station'?'Seilbahnstation':null)||{guest_house:'Homestay / Gästehaus',hostel:'Hostel',alpine_hut:'Hütte',camp_site:'Zeltplatz'}[t.tourism]
+  ||{pharmacy:'Apotheke',police:'Polizei'}[t.amenity]||{hospital:'Krankenhaus',clinic:'Klinik',marketplace:'Markt',embassy:'Botschaft',bus_station:'Busbahnhof',place_of_worship:'Religiöse Stätte'}[t.amenity]
+  ||{museum:'Museum',attraction:'Sehenswürdigkeit',viewpoint:'Aussichtspunkt',gallery:'Galerie'}[t.tourism]
+  ||{supermarket:'Supermarkt',mall:'Einkaufszentrum'}[t.shop]||{diplomatic:'Diplomatische Vertretung',government:'Behörde'}[t.office]
+  ||(t.railway==='station'?(t.station==='subway'?'Metrostation':'Bahnhof'):null)||(t.aeroway?'Flugplatz':null)||(t.historic?'Historische Stätte':null)||'Ort');
+const name=t=>t.name||t['name:en']||'';
+function zeige(){
+  const nat=['park','garten','wasser','zoo','reservat'].reduce((s,k)=>s+zaehler[k],0);
+  setz('s-n',nat||'–'); setz('s-a',zaehler.wdpa||'–');
+  const o=['sehen','markt','gesund','amt','verkehr','viertel','ruhig','unterkunft'].reduce((s,k)=>s+zaehler[k],0); setz('s-y',o||'–');
+  Object.keys(KAT).forEach(k=>{const e=document.getElementById('ct-'+k); if(e) e.textContent=zaehler[k]||(k==='bahn'?'':'–');});
+}
+function links(lat,lon){
+  return `<div class="lnk"><a target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=17/${lat}/${lon}">OpenStreetMap</a><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}">In Google Maps öffnen</a></div>`;
+}
+
+/* Abstände (Luftlinie) */
+const RAD_=Math.PI/180;
+function metres(a,b,c,d){const x=(d-b)*RAD_*Math.cos((a+c)/2*RAD_),y=(c-a)*RAD_;return Math.sqrt(x*x+y*y)*6371000;}
+function zuStrecke(la,lo,a,b){ const k=Math.cos(la*RAD_); const ax=(a[1]-lo)*k,ay=a[0]-la,bx=(b[1]-lo)*k,by=b[0]-la,dx=bx-ax,dy=by-ay;
+  let t=(dx||dy)?-(ax*dx+ay*dy)/(dx*dx+dy*dy):0; t=Math.max(0,Math.min(1,t)); return Math.hypot(ax+t*dx,ay+t*dy)*RAD_*6371000; }
+function kurz(m){return m<1000?Math.round(m/10)*10+' m':(m/1000).toFixed(1).replace('.',',')+' km';}
+function naechsteOrt(la,lo,k){ let best=null; orte.filter(o=>o.k===k).forEach(o=>{const m=metres(la,lo,o.la,o.lo); if(!best||m<best.m) best={m,n:o.n};}); return best; }
+function abstandTabelle(la,lo){
+  const z=[];
+  if(strassen.length){ let m=Infinity,n=''; strassen.forEach(s=>{for(let i=1;i<s.p.length;i++){const d=zuStrecke(la,lo,s.p[i-1],s.p[i]); if(d<m){m=d;n=s.n;}}}); z.push(['Hauptstraße',kurz(m)+(n?' · '+esc(n):'')]); }
+  else z.push(['Hauptstraße','noch nicht geladen']);
+  if(naturPunkte.length){ let m=Infinity,n=''; naturPunkte.forEach(f=>f.rs.forEach(q=>{for(let i=1;i<q.length;i++){const d=zuStrecke(la,lo,q[i-1],q[i]); if(d<m){m=d;n=f.n;}}})); z.push(['Grünfläche/See',kurz(m)+' · '+esc(n)]); }
+  [['gesund','Krankenhaus/Klinik'],['markt','Markt/Supermarkt']].forEach(([k,t])=>{const b=naechsteOrt(la,lo,k); z.push([t,b?kurz(b.m)+' · '+esc(b.n):'noch nicht geladen']);});
+  return `<table class="pk">${z.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table><div class="pd" style="margin:8px 0 0 0">Luftlinie, keine Lärmmessung.</div>`;
+}
+map.on('click',e=>{ const {lat,lng}=e.latlng;
+  L.popup({maxWidth:320}).setLatLng(e.latlng).setContent(`<div class="pt">Diese Stelle</div>${abstandTabelle(lat,lng)}${links(lat.toFixed(5),lng.toFixed(5))}`).openOn(map); });
+
+/* Wikipedia zu einem Ort */
+async function wikiFuer(t){
+  let lang,titel;
+  if(t.wikidata&&/^Q\d+$/.test(t.wikidata)){ try{
+    const j=await (await fetch(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${t.wikidata}&props=sitelinks&sitefilter=dewiki|enwiki|viwiki&format=json&origin=*`)).json();
+    const s=j.entities[t.wikidata].sitelinks; for(const l of ['de','en','vi']) if(s&&s[l+'wiki']){lang=l;titel=s[l+'wiki'].title;break;}
+  }catch(e){} }
+  if(!titel&&t.wikipedia){ const i=t.wikipedia.indexOf(':'); if(i>0){lang=t.wikipedia.slice(0,i);titel=t.wikipedia.slice(i+1);} }
+  if(!titel||!/^[a-z-]{2,12}$/.test(lang)) return null;
+  return wikiSummary(lang,titel);
+}
+function ortPopup(t,la,lo,k){
+  const web=/^https?:\/\//i.test(t.website||t['contact:website']||'')?(t.website||t['contact:website']):null;
+  const adr=[t['addr:housenumber'],t['addr:street'],t['addr:district']||t['addr:city']].filter(Boolean).join(' ');
+  const z=[['Englisch',t['name:en']&&t['name:en']!==t.name?t['name:en']:null],['Adresse',adr||null],['Öffnungszeiten',t.opening_hours],['Telefon',t.phone||t['contact:phone']]].filter(r=>r[1]);
+  return `<div class="pt">${esc(name(t))}</div><div class="pd"><span class="badge" style="background:${KAT[k].c}">${esc(ORTTYP(t))}</span></div>
+    ${z.length?`<table class="pk">${z.map(r=>`<tr><td>${r[0]}</td><td>${esc(r[1])}</td></tr>`).join('')}</table>`:''}
+    <div class="wiki"></div>${links(la,lo)}${web?`<div class="lnk"><a target="_blank" rel="noopener" href="${esc(web)}">Webseite</a></div>`:''}
+    <div class="pd" style="margin:8px 0 0 0">Quelle: OpenStreetMap (ODbL)</div>`;
+}
+
+/* Stapelreihenfolge: große Flächen unten, kleine darüber, Punkte zuoberst.
+   So lässt sich alles antippen, egal was zuerst geladen wurde. */
+let ordnenUhr=null;
+function ordnenBald(){ clearTimeout(ordnenUhr); ordnenUhr=setTimeout(ordnen,40); }
+function ordnen(){
+  const groesse=b=>{const a=b.getSouthWest(),c=b.getNorthEast();return (c.lat-a.lat)*(c.lng-a.lng);};
+  const sicht=records.filter(r=>r.layer.bringToFront&&map.hasLayer(r.layer));
+  sicht.filter(r=>r.layer.getBounds).map(r=>[groesse(r.layer.getBounds()),r.layer]).sort((a,b)=>b[0]-a[0]).forEach(x=>x[1].bringToFront());
+  ['routen','voegel','schlangen'].forEach(k=>{ if(map.hasLayer(groups[k])) groups[k].eachLayer(l=>l.bringToFront()); });
+  const punkte=sicht.filter(r=>!r.layer.getBounds);
+  punkte.filter(r=>r.feature).forEach(r=>r.layer.bringToFront());
+  punkte.filter(r=>!r.feature).forEach(r=>r.layer.bringToFront());
+  if(vDichte) vDichte.eachLayer(l=>l.bringToFront());
+}
+const gesehen=new Set();
+/* --- Ebenen füllen --- */
+function flaeche(e,k){
+  const g=geometrie(e), t=e.tags||{}; if(!g||g.type==='LineString') return;
+  const f={type:'Feature',geometry:g,properties:{OBJECTID:'osm'+e.type+e.id,name:name(t),desig_eng:k,quelle:'osm',tags:t}};
+  const c=KAT[k].c;
+  L.geoJSON(f,{style:{color:c,weight:1.1,opacity:.95,fillColor:c,fillOpacity:k==='wasser'?.28:.34},
+    pointToLayer:(_,ll)=>L.circleMarker(ll,{radius:4,color:c,weight:2,fillColor:c,fillOpacity:.55}),
+    onEachFeature:(_,l)=>{ l.bindTooltip(name(t),{sticky:true,direction:'top'});
+      l.on('click',ev=>{L.DomEvent.stopPropagation(ev); openSpecies(f);}); l.addTo(groups[k]);
+      records.push({name:name(t),d:k,layer:l,feature:f}); }});
+  const rs=g.type==='Point'?[[g.coordinates,g.coordinates]]:g.type==='Polygon'?g.coordinates:g.coordinates.flat(1);
+  naturPunkte.push({n:name(t),rs:rs.map(q=>q.map(c=>[c[1],c[0]]))});
+  zaehler[k]++;
+}
+function fuegeWdpa(gj){
+  L.geoJSON(gj,{style:f=>{const i=f.properties.desig_type==='International';return{color:KAT.wdpa.c,weight:i?2:1.3,opacity:.95,fillColor:KAT.wdpa.c,fillOpacity:i?.06:.26,dashArray:i?'6,4':null};},
+    pointToLayer:(f,ll)=>L.circleMarker(ll,{radius:6,color:KAT.wdpa.c,weight:2,fillColor:KAT.wdpa.c,fillOpacity:.55}),
+    onEachFeature:(f,l)=>{ const p=f.properties; p.gebiet=p.desig_eng; const kat=p.desig_eng; p.desig_eng='wdpa'; p.katText=kat;
+      l.bindTooltip(p.name||'',{sticky:true,direction:'top'}); l.on('click',ev=>{L.DomEvent.stopPropagation(ev); openSpecies(f);});
+      l.addTo(groups.wdpa); records.push({name:p.name||'',d:'wdpa',layer:l,feature:f}); zaehler.wdpa++; }});
+}
+function viertelMarke(n,la,lo,hinweis){
+  const k=hinweis?'ruhig':'viertel';
+  const m=L.marker([la,lo],{icon:L.divIcon({className:'place'+(hinweis?' ruhig':''),html:esc(n),iconSize:[0,0]}),zIndexOffset:hinweis?500:0});
+  m.bindPopup(()=>`<div class="pt">${esc(n)}</div>${hinweis?`<div class="pd">${esc(hinweis)} · Lage laut OpenStreetMap.</div>`:''}${abstandTabelle(la,lo)}${links(la,lo)}`,{maxWidth:320});
+  m.addTo(groups[k]); records.push({name:n,d:k,layer:m}); zaehler[k]++;
+}
+function fuegeOrt(e){
+  const id=e.type+e.id; if(gesehen.has(id)) return; gesehen.add(id);
+  const t=e.tags||{}, n=name(t); if(!n) return; const la=e.lat??e.center?.lat, lo=e.lon??e.center?.lon; if(la==null||lo==null) return;
+  if(/^(town|village|hamlet|suburb|quarter|neighbourhood)$/.test(t.place||'')){ viertelMarke(n,la,lo,t.place==='town'?'Stadt':null); return; }
+  const k=ortArt(t), c=KAT[k].c;
+  const m=L.circleMarker([la,lo],{radius:k==='sehen'?5:4,color:'#0b1013',weight:1,fillColor:c,fillOpacity:.95,bubblingMouseEvents:false});
+  m.bindTooltip(n,{direction:'top'}); m.bindPopup(()=>ortPopup(t,la,lo,k),{maxWidth:330});
+  m.on('popupopen',async ev=>{ const box=ev.popup.getElement()?.querySelector('.wiki'); if(!box||!(t.wikidata||t.wikipedia)) return;
+    box.textContent='Wikipedia wird geladen …'; const w=await wikiFuer(t); if(!w){box.textContent='';return;}
+    box.innerHTML=`${w.img?`<img src="${esc(w.img)}" alt="">`:''}${esc(trim(w.extract,320))} ${w.url?`<a style="color:#4db6ac" target="_blank" rel="noopener" href="${esc(w.url)}">Wikipedia (${esc(w.lang)})</a>`:''}`; });
+  m.addTo(groups[k]); records.push({name:n,d:k,layer:m}); orte.push({k,la,lo,n}); zaehler[k]++;
+}
+function statusText(r,n,was){ return r.veraltet?`${n} ${was}. Gespeicherter Stand, Abruf gerade nicht möglich.`:r.alt?`${n} ${was}, vom Gerät geladen.`:`${n} ${was} geladen.`; }
+function zeile(k){
+  const row=document.createElement('label'); row.className='cat'+(KAT[k].an?'':' off');
+  row.innerHTML=`<input type="checkbox" ${KAT[k].an?'checked':''}><span class="sw" style="background:${KAT[k].c}"></span><span class="nm">${KAT[k].de}</span><span class="ct" id="ct-${k}"></span>`;
+  row.querySelector('input').addEventListener('change',e=>{ if(e.target.checked){map.addLayer(groups[k]);row.classList.remove('off');ordnenBald();} else {map.removeLayer(groups[k]);row.classList.add('off');} });
+  document.getElementById('g-'+KAT[k].g).appendChild(row);
+}
+Object.keys(KAT).forEach(zeile);
+if(KAT.bahn.an) groups.bahn.addTo(map);
+
+function suche(){
+  const q=document.getElementById('q'),hits=document.getElementById('hits');
+  q.addEventListener('input',()=>{ const t=q.value.trim().toLowerCase(); hits.innerHTML=''; if(t.length<2) return;
+    records.filter(r=>r.name.toLowerCase().includes(t)).slice(0,40).forEach(r=>{
+      const el=document.createElement('div'); el.className='hit'; el.innerHTML=`${esc(r.name)}<small>${esc(KAT[r.d].de)}</small>`;
+      el.onclick=()=>{ if(!map.hasLayer(groups[r.d])){ map.addLayer(groups[r.d]); ordnen(); }
+        const b=r.layer.getBounds?r.layer.getBounds():null;
+        if(b&&b.isValid()) map.fitBounds(b,{maxZoom:15,padding:[40,40]}); else map.setView(r.layer.getLatLng(),16);
+        if(r.feature) openSpecies(r.feature); else if(r.layer.openPopup) r.layer.openPopup(); };
+      hits.appendChild(el); }); });
+}
+
+async function ladeNatur(){ setz('st-natur','Lädt aus OpenStreetMap …');
+  try{ const r=await laden('natur',()=>osmDaten('natur',`(nwr["leisure"~"^(park|garden|nature_reserve)$"]["name"](${BB_GANZ});nwr["tourism"="zoo"]["name"](${BB_GANZ});nwr["natural"="water"]["name"](${BB_GANZ}););out geom;`));
+    r.daten.elements.forEach(e=>flaeche(e,naturArt(e.tags||{}))); zeige(); ordnenBald();
+    setz('st-natur',statusText(r,r.daten.elements.length,'Einträge'));
+  }catch(e){ setz('st-natur','Konnte nicht geladen werden ('+e.message+'). Seite später neu laden.'); } }
+async function ladeWdpa(){ setz('st-wdpa','Lädt aus der WDPA …');
+  const imAusschnitt=f=>{ const n=JSON.stringify(f.geometry.coordinates).match(/-?\d+\.?\d*/g).map(Number); let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+    for(let i=0;i<n.length;i+=2){ x0=Math.min(x0,n[i]);x1=Math.max(x1,n[i]);y0=Math.min(y0,n[i+1]);y1=Math.max(y1,n[i+1]); } return x1>=103.3&&x0<=104.4&&y1>=21.9&&y0<=22.8; };
+  try{ const hol=async l=>{
+      /* zuerst die monatlich mitgelieferte WDPA-Abschrift der Vietnam-Karte, nur ersatzweise live */
+      try{ const {r:a,text}=await mitFrist(`../daten/${l===1?'wdpa-flaechen':'wdpa-punkte'}.geojson`,{}); if(a.ok){ const j=JSON.parse(text); if(j.features) return {type:'FeatureCollection',features:j.features.filter(imAusschnitt)}; } }catch(e){}
+      const u=`${SERVICE}/${l}/query?where=${encodeURIComponent("iso3='VNM'")}&geometry=103.3,21.9,104.4,22.8&geometryType=esriGeometryEnvelope&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=true&outSR=4326&geometryPrecision=5${l===1?'&maxAllowableOffset=0.002':''}&resultRecordCount=500&f=geojson`;
+      const {r:a,text}=await mitFrist(u,{}); if(!a.ok) throw new Error('HTTP '+a.status); const j=JSON.parse(text); if(!j.features) throw new Error(j.error?.message||'Antwort ohne Datensätze'); return j; };
+    const r=await laden('wdpa',async()=>{const [a,b]=await Promise.all([hol(1),hol(0)]);return {type:'FeatureCollection',features:[...a.features,...b.features]};});
+    fuegeWdpa(r.daten); zeige(); ordnenBald(); setz('st-wdpa',statusText(r,r.daten.features.length,'Gebiete'));
+  }catch(e){ setz('st-wdpa','Konnte nicht geladen werden ('+e.message+').'); } }
+async function ladeStrassen(){ setz('st-stadt','Straßen laden …');
+  try{ const r=await laden('strassen',()=>osmDaten('strassen',`way["highway"~"^(motorway|trunk|primary)$"](${BB_KERN});out tags geom;`));
+    const alle=[]; r.daten.elements.forEach(e=>{ if(!e.geometry||e.geometry.length<2) return; const p=e.geometry.map(q=>[q.lat,q.lon]); const n=e.tags?.name||e.tags?.ref||'';
+      strassen.push({p,n}); alle.push(p); zaehler.strasse++; });
+    L.polyline(alle,{color:KAT.strasse.c,weight:2,opacity:.7,interactive:false}).addTo(groups.strasse);
+    zeige(); setz('st-stadt',statusText(r,r.daten.elements.length,'Straßenabschnitte'));
+  }catch(e){ setz('st-stadt','Straßen konnten nicht geladen werden ('+e.message+').'); } }
+const ORTTEILE=[
+ ['Sehenswertes','orte-sehen',`(nwr["tourism"~"^(museum|attraction|viewpoint|gallery)$"]["name"](${BB_GANZ});nwr["historic"]["name"](${BB_GANZ});nwr["amenity"="place_of_worship"]["name"]["wikidata"](${BB_GANZ}););out tags center;`],
+ ['Alltag','orte-alltag',`(nwr["amenity"~"^(hospital|clinic|marketplace|embassy)$"]["name"](${BB_GANZ});nwr["shop"~"^(supermarket|mall)$"]["name"](${BB_GANZ});nwr["office"~"^(diplomatic|government)$"]["name"](${BB_GANZ}););out tags center;`],
+ ['Viertel und Verkehr','orte-stadt',`(node["place"~"^(suburb|quarter|neighbourhood)$"]["name"](${BB_KERN});nwr["railway"="station"]["name"](${BB_GANZ});nwr["amenity"="bus_station"]["name"](${BB_GANZ});nwr["aeroway"="aerodrome"]["name"](${BB_GANZ}););out tags center;`]
+];
+async function ladeOrte(){
+  const zeilen=[];
+  for(const [titel,key,abfrage] of ORTTEILE){
+    setz('st-orte',[...zeilen,titel+' lädt …'].join(' · '));
+    try{ const r=await laden(key,()=>osmDaten(key,abfrage)); r.daten.elements.forEach(fuegeOrt); zeige(); ordnenBald(); zeilen.push(`${titel}: ${r.daten.elements.length}${r.alt?' (vom Gerät)':''}`); }
+    catch(e){ zeilen.push(`${titel}: nicht geladen (${e.message})`); }
+    setz('st-orte',zeilen.join(' · '));
+  }
+  if(zeilen.some(z=>z.includes('nicht geladen'))) setz('st-orte',zeilen.join(' · ')+'. Seite neu laden: Fertiges bleibt gespeichert.');
+}
+
+/* ============================================================
+   ARTEN – Nachweise aus GBIF, IUCN-Status, Steckbrief/Bild aus
+   Wikipedia (Fallback: GBIF-Media). Alles live, nichts vorgeneriert.
+   ============================================================ */
+const GBIF='https://api.gbif.org/v1';
+const THREAT=['CR','EN','VU'];
+/* Offengelegte Auswahlliste für den Reiter „Charismatisch": GBIF-Backbone-Schlüssel der
+   Familien/Gruppen, die in der Naturschutzkommunikation Südostasiens als Flaggschiffarten
+   gelten. Es ist eine redaktionelle Auswahl – keine Kategorie aus einer Datenbank. */
+const CHARIS={
+  1:[ /* Tiere */
+    5484,9622,3239561,      // Gibbons, Languren/Makaken, Plumploris
+    9427,9703,9681,         // Elefanten, Katzen, Bären
+    9614,5298,5480,         // Hornträger (Saola), Hirsche/Muntjaks, Schuppentiere
+    5307,5312,              // Marder/Otter, Schleichkatzen
+    9720,9331,8482797,      // Nashornvögel, Fasane/Pfaue, Papageien
+    9289,9313,2877,         // Störche, Kraniche, Greifvögel
+    9334,9356,3242200,      // Pittas, Trogone, Bartvögel
+    5685,5023,4287591,      // Krokodile, Warane, Pythons
+    5463,9618,5469,9413,5464,4287906, // Schildkröten (6 Familien)
+    9462,5314,              // Dugong, Delfine
+    9417                    // Ritterfalter
+  ],
+  6:[7689,6682,6645,6168,2413] /* Orchideen, Kannenpflanzen, Flügelfruchtgewächse, Palmfarne, Rafflesien */
+};
+const TABS={
+  threat:{label:'Gefährdet', hint:'Im Gebiet nachgewiesene Arten der IUCN-Kategorien CR, EN und VU, sortiert nach Gefährdungsgrad.'},
+  charis:{label:'Charismatisch', hint:'Nachweise aus einer offengelegten Auswahl von Flaggschiff-Gruppen (Primaten, Großsäuger, Nashornvögel, Fasane, Schildkröten, Orchideen u. a.) – unabhängig vom Gefährdungsstatus. Redaktionelle Auswahl, keine Datenbankkategorie.'},
+  voegel:{label:'Vögel', hint:'Im Gebiet am häufigsten gemeldete Vogelarten aus GBIF, über alle Jahre und Jahreszeiten. Das zeigt, was hier vorkommen kann, nicht was gerade zu sehen ist.'},
+  common:{label:'Häufig', hint:'Die im Gebiet am häufigsten dokumentierten Arten. Das spiegelt vor allem die Beobachtungsintensität, nicht die tatsächliche Häufigkeit im Gelände.'}
+};
+const IUCN_DE={CR:'vom Aussterben bedroht',EN:'stark gefährdet',VU:'gefährdet',NT:'potenziell gefährdet',LC:'nicht gefährdet',DD:'ungenügende Daten'};
+const RANK={CR:0,EN:1,VU:2,NT:3,LC:4,DD:5,NE:6};
+const cache=new Map();
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* --- Geometrie → WKT (vereinfacht, gegen den Uhrzeigersinn) --- */
+function sqSegDist(p,a,b){let x=a[0],y=a[1],dx=b[0]-x,dy=b[1]-y;
+  if(dx||dy){const t=((p[0]-x)*dx+(p[1]-y)*dy)/(dx*dx+dy*dy);
+    if(t>1){x=b[0];y=b[1];}else if(t>0){x+=dx*t;y+=dy*t;}}
+  dx=p[0]-x;dy=p[1]-y;return dx*dx+dy*dy;}
+function dp(pts,tol){if(pts.length<=4)return pts;const sq=tol*tol,last=pts.length-1,keep=new Array(pts.length).fill(false);
+  keep[0]=keep[last]=true;const st=[[0,last]];
+  while(st.length){const [i,j]=st.pop();let md=0,idx=-1;
+    for(let k=i+1;k<j;k++){const d=sqSegDist(pts[k],pts[i],pts[j]);if(d>md){md=d;idx=k;}}
+    if(md>sq){keep[idx]=true;st.push([i,idx],[idx,j]);}}
+  return pts.filter((_,i)=>keep[i]);}
+function sArea(r){let s=0;for(let i=0,j=r.length-1;i<r.length;j=i++)s+=(r[j][0]*r[i][1]-r[i][0]*r[j][1]);return s/2;}
+function closeRing(r){const a=r[0],b=r[r.length-1];return (a[0]===b[0]&&a[1]===b[1])?r:r.concat([a]);}
+function toWKT(geom,budget=170){
+  if(geom.type==='Point'||geom.type==='MultiPoint') return null;
+  let rings=geom.type==='Polygon'?[geom.coordinates[0]]:geom.coordinates.map(p=>p[0]);
+  rings=rings.map(r=>({r,a:Math.abs(sArea(r))})).sort((x,y)=>y.a-x.a);
+  const tot=rings.reduce((s,x)=>s+x.a,0)||1; let acc=0; const chosen=[];
+  for(const x of rings){chosen.push(x.r);acc+=x.a;if(acc/tot>=0.97||chosen.length>=6)break;}
+  let out=chosen,tol=0.0005;
+  for(let i=0;i<14;i++){
+    out=chosen.map(r=>{let s=closeRing(dp(r,tol));return s.length<4?closeRing(r):s;});
+    if(out.reduce((s,r)=>s+r.length,0)<=budget) break; tol*=1.7;
+  }
+  out=out.filter(r=>r.length>=4).map(r=>sArea(r)<0?[...r].reverse():r);
+  if(!out.length) return null;
+  const f=r=>'(('+r.map(p=>p[0].toFixed(4)+' '+p[1].toFixed(4)).join(',')+'))';
+  return out.length===1?'POLYGON'+f(out[0]):'MULTIPOLYGON('+out.map(f).join(',')+')';
+}
+function bboxOf(geom){
+  const cs=(geom.type==='Point'?[geom.coordinates]:
+            geom.type==='MultiPoint'?geom.coordinates:
+            geom.type==='Polygon'?geom.coordinates.flat():geom.coordinates.flat(2));
+  const lo=cs.map(p=>p[0]),la=cs.map(p=>p[1]);
+  const pad=(geom.type==='Point'||geom.type==='MultiPoint')?0.05:0;
+  return [Math.min(...lo)-pad,Math.min(...la)-pad,Math.max(...lo)+pad,Math.max(...la)+pad];
+}
+
+/* --- GBIF-Abfrage für ein Gebiet --- */
+async function gbifQuery(spatial, kingdomKey, tab){
+  const p=new URLSearchParams();
+  p.set('limit','300'); p.set('hasCoordinate','true'); p.set('hasGeospatialIssue','false');
+  p.set('kingdomKey',kingdomKey); p.set('facet','speciesKey'); p.set('facetLimit','120');
+  if(tab==='voegel') p.set('classKey','212');
+  if(tab==='threat') THREAT.forEach(c=>p.append('iucnRedListCategory',c));
+  if(tab==='charis') (CHARIS[kingdomKey]||[]).forEach(k=>p.append('taxonKey',k));
+  if(spatial.wkt) p.set('geometry',spatial.wkt);
+  else { p.set('decimalLongitude',spatial.bbox[0]+','+spatial.bbox[2]);
+         p.set('decimalLatitude',spatial.bbox[1]+','+spatial.bbox[3]); }
+  const url=`${GBIF}/occurrence/search?`+p.toString();
+  for(let attempt=0;attempt<3;attempt++){
+    const r=await fetch(url);
+    if(r.ok) return r.json();
+    if(r.status===429||r.status===503){ await new Promise(s=>setTimeout(s,600*(attempt+1))); continue; }
+    throw Object.assign(new Error('GBIF '+r.status),{status:r.status});
+  }
+  throw Object.assign(new Error('GBIF überlastet (429)'),{status:429});
+}
+function collapse(json, byCount){
+  const counts={}; (json.facets?.[0]?.counts||[]).forEach(c=>counts[c.name]=c.count);
+  const seen=new Map();
+  (json.results||[]).forEach(o=>{
+    if(!o.speciesKey||!o.species) return;
+    if(seen.has(o.speciesKey)) return;
+    seen.set(o.speciesKey,{key:o.speciesKey,sci:o.species,kingdom:o.kingdom,cls:o.class,order:o.order,
+      family:o.family,iucn:o.iucnRedListCategory||'NE',n:counts[o.speciesKey]||1});
+  });
+  const v=[...seen.values()];
+  return byCount ? v.sort((a,b)=>b.n-a.n)
+                 : v.sort((a,b)=>(RANK[a.iucn]??9)-(RANK[b.iucn]??9)||b.n-a.n);
+}
+async function speciesFor(feature, tab){
+  const id=feature.properties.OBJECTID+'|'+tab;
+  if(cache.has(id)) return cache.get(id);
+  const wkt=toWKT(feature.geometry), bbox=bboxOf(feature.geometry).map(v=>+v.toFixed(4));
+  let spatial=wkt?{wkt}:{bbox}, mode=wkt?'polygon':'bbox';
+  const run=async(t)=>{
+    try{ return await Promise.all([gbifQuery(spatial,1,t), gbifQuery(spatial,6,t)]); }
+    catch(e){ if(spatial.wkt && e.status===400){ spatial={bbox}; mode='bbox';
+        return Promise.all([gbifQuery(spatial,1,t), gbifQuery(spatial,6,t)]); } throw e; }
+  };
+  const [a,p]=await run(tab);
+  const byCount = tab==='common'||tab==='voegel';
+  const res={animals:collapse(a,byCount).slice(0,tab==='voegel'?20:10), plants:collapse(p,byCount).slice(0,8),
+             tab, mode, bbox, totalA:a.count||0, totalP:p.count||0};
+  cache.set(id,res); return res;
+}
+
+/* --- Steckbrief + Bild --- */
+async function wikiSummary(lang,name){
+  try{
+    const r=await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name.replace(/ /g,'_'))}?redirect=true`);
+    if(!r.ok) return null; const j=await r.json();
+    if(j.type&&j.type!=='standard') return null;
+    return {title:j.title, extract:j.extract||'', img:j.thumbnail?.source||null, url:j.content_urls?.desktop?.page||null, lang};
+  }catch(e){ return null; }
+}
+const LIC=u=>!u?null:String(u).replace(/^https?:\/\/(www\.)?creativecommons\.org\/(licenses|publicdomain)\//,'CC ')
+  .replace(/\/$/,'').replace(/\//g,' ').replace(/^CC zero 1\.0$/,'CC0 1.0').toUpperCase();
+async function gbifImage(key){
+  try{
+    const j=await (await fetch(`${GBIF}/occurrence/search?taxonKey=${key}&mediaType=StillImage&limit=5`)).json();
+    const cands=(j.results||[]).flatMap(o=>o.media||[]).filter(m=>m.identifier&&/\.(jpe?g|png)(\?|$)/i.test(m.identifier));
+    if(!cands.length) return null;
+    // Kleinere Varianten bevorzugen: iNaturalist liefert zu /original. auch /medium.
+    const m=cands.find(c=>/inaturalist/i.test(c.identifier))||cands[0];
+    const img=m.identifier.replace(/\/original\.(jpe?g|png)/i,'/medium.$1');
+    return {img,creator:m.creator||m.rightsHolder||null,license:LIC(m.license)};
+  }catch(e){ return null; }
+}
+function trim(t,max=230){
+  if(!t) return '';
+  if(t.length<=max) return t;
+  const cut=t.slice(0,max); const i=Math.max(cut.lastIndexOf('. '),cut.lastIndexOf('. '));
+  return (i>90?cut.slice(0,i+1):cut.trim()+' …');
+}
+async function enrich(sp){
+  const w=(await wikiSummary('de',sp.sci)) || (await wikiSummary('en',sp.sci));
+  let img=w?.img||null, credit=w?'Wikipedia ('+w.lang+')':null;
+  if(!img){ const g=await gbifImage(sp.key);
+    if(g){ img=g.img; credit='Foto: '+(g.creator||'unbekannt')+(g.license?', '+g.license:'')+' (GBIF)'; } }
+  return {...sp, de:w&&w.lang==='de'?w.title:null, en:w&&w.lang==='en'?w.title:null,
+          extract:trim(w?.extract), url:w?.url||null, img, credit};
+}
+
+/* --- Rendering --- */
+function spCard(s){
+  const title = s.de || s.en || s.sci;
+  const fact  = [s.cls,s.order,s.family].filter(Boolean).join(' · ');
+  const body  = s.extract || `${fact||'Taxonomie unvollständig'}. IUCN-Status: ${IUCN_DE[s.iucn]||s.iucn}. Steckbrieftext liegt in Wikipedia nicht vor.`;
+  const img   = s.img
+      ? `<img class="spimg" loading="lazy" src="${esc(s.img)}" data-big="${esc(bigger(s.img))}" alt="${esc(title)}" title="Für eine größere Ansicht mit dem Mauszeiger darüberfahren" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'spimg ph2',textContent:'—'}))">`
+      : `<div class="spimg ph2">—</div>`;
+  return `<div class="sp">${img}<div class="spb">
+    <div class="spn">${esc(title)} <span class="iucn i-${s.iucn}">${s.iucn}</span></div>
+    <div class="spl">${esc(s.sci)}${fact?' · '+esc(fact):''}</div>
+    <div class="spx">${esc(body)}</div>
+    <div class="spf"><span>${s.n} Nachweis${s.n===1?'':'e'} im Gebiet</span>
+      ${s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener">Wikipedia</a>`:''}
+      <a href="https://www.gbif.org/species/${s.key}" target="_blank" rel="noopener">GBIF</a>
+      ${s.credit?`<span style="color:#5d6b76">${esc(s.credit)}</span>`:''}
+    </div></div></div>`;
+}
+
+const panel=document.getElementById('panel');
+function closePanel(){ panel.classList.remove('open'); panel.innerHTML=''; hideZoom(); setTimeout(()=>map.invalidateSize(),200); }
+let openToken=0, curFeature=null, curTab='threat';
+
+/* --- Bildlupe beim Überfahren --- */
+const zoomBox=document.createElement('div'); zoomBox.id='zoom'; zoomBox.innerHTML='<img alt="">';
+document.body.appendChild(zoomBox);
+const bigger=u=>!u?u:u.replace(/\/(\d{2,4})px-/,'/640px-').replace(/\/medium\.(jpe?g|png)/i,'/large.$1');
+let zoomFor=null;
+function hideZoom(){ zoomBox.style.display='none'; zoomFor=null; }
+function showZoom(imgEl){
+  if(!imgEl.getAttribute('src')) return;
+  zoomFor=imgEl;
+  const im=zoomBox.querySelector('img');
+  im.src=imgEl.src;                       // sofort: bereits geladenes Vorschaubild
+  const r=imgEl.getBoundingClientRect(), W=360;
+  zoomBox.style.width=W+'px';
+  zoomBox.style.left=Math.max(8, r.left-W-16)+'px';
+  zoomBox.style.top=Math.min(Math.max(8, r.top-60), Math.max(8, window.innerHeight-330))+'px';
+  zoomBox.style.display='block';
+  const big=imgEl.dataset.big;            // danach: hochauflösende Fassung nachladen
+  if(big && big!==imgEl.src){
+    const pre=new Image();
+    pre.onload=()=>{ if(zoomFor===imgEl) im.src=big; };
+    pre.src=big;
+  }
+}
+panel.addEventListener('mouseover',e=>{ const t=e.target.closest('img.spimg'); if(t) showZoom(t); });
+panel.addEventListener('mouseout',e=>{ if(e.target.closest('img.spimg')) hideZoom(); });
+panel.addEventListener('scroll',hideZoom,{passive:true});
+
+function tabBar(active){
+  return `<div class="tabs">${Object.entries(TABS).map(([k,v])=>
+    `<button class="tab${k===active?' on':''}" data-tab="${k}">${v.label}</button>`).join('')}</div>`;
+}
+
+async function openSpecies(feature, tab){
+  curFeature=feature; curTab=tab||curTab||'threat';
+  const p=feature.properties, m=meta(p.desig_eng), token=++openToken, t=curTab;
+  panel.classList.add('open'); hideZoom(); setTimeout(()=>map.invalidateSize(),200);
+  panel.innerHTML=`<div class="ph"><button id="close" title="Schließen">×</button>
+      <h3>${esc(p.name||'ohne Namen')}</h3>
+      <div class="pmeta"><span class="badge" style="background:${m.c}">${esc(p.katText||m.de)}</span>
+        ${p.rep_area?' · '+fmtN(p.rep_area)+' km²':''}${nr(p.status_yr)?' · seit '+p.status_yr:''}</div>
+      ${tabBar(t)}</div>
+    <div class="spin">Artnachweise werden aus GBIF geladen …</div>`;
+  panel.querySelector('#close').onclick=closePanel;
+  panel.querySelectorAll('.tab').forEach(b=>b.onclick=()=>openSpecies(curFeature,b.dataset.tab));
+  try{
+    const d=await speciesFor(feature,t);
+    if(token!==openToken) return;
+    const spatial=d.mode==='polygon'?'exakte Schutzgebietsgrenze':'umschließendes Rechteck (Grenze für die Abfrage zu komplex) – Randtreffer möglich';
+    if(!d.animals.length && !d.plants.length){
+      panel.querySelector('.spin').outerHTML=
+        `<div class="modebar"><b>${TABS[t].label}</b> – ${TABS[t].hint}</div>
+         <div class="spin">In GBIF liegen für dieses Gebiet keine passenden georeferenzierten Nachweise vor.
+         ${t!=='common'?'Der Reiter <b>Häufig</b> zeigt womöglich Treffer.':''}</div>${creditBlock(d)}`;
+      return;
+    }
+    panel.querySelector('.spin').outerHTML=`
+      <div class="modebar"><b>${TABS[t].label}</b> – ${TABS[t].hint}<br>Räumlicher Bezug: ${spatial}.</div>
+      ${d.animals.length?`<div class="grp">Tiere · ${d.animals.length} Arten aus ${fmtN(d.totalA)} Nachweisen</div><div id="an"></div>`:''}
+      ${d.plants.length?`<div class="grp">Pflanzen · ${d.plants.length} Arten aus ${fmtN(d.totalP)} Nachweisen</div><div id="pl"></div>`:''}
+      ${creditBlock(d)}`;
+    const fill=async(arr,hostId)=>{
+      const host=panel.querySelector('#'+hostId); if(!host) return;
+      host.innerHTML=arr.map(s=>spCard(s)).join('');
+      const rich=await Promise.all(arr.map(enrich));
+      if(token!==openToken) return;
+      host.innerHTML=rich.map(s=>spCard(s)).join('');
+    };
+    await Promise.all([fill(d.animals,'an'), fill(d.plants,'pl')]);
+  }catch(e){
+    if(token!==openToken) return;
+    const s=panel.querySelector('.spin');
+    if(s) s.innerHTML='Artnachweise konnten nicht geladen werden.<br><span style="font-size:11px">'+esc(e.message)+'</span>';
+  }
+}
+function creditBlock(d){
+  return `<div class="credit">
+    <b>Datenherkunft der Artenliste</b><br>
+    Nachweise: GBIF.org – Global Biodiversity Information Facility, Occurrence Search, live abgefragt
+    (<a href="https://www.gbif.org/occurrence/search" target="_blank" rel="noopener">gbif.org</a>).
+    Gefährdungsstatus: IUCN Red List of Threatened Species, über das GBIF-Backbone verknüpft.
+    Steckbriefe und Bilder: Wikipedia / Wikimedia Commons (CC BY-SA), ersatzweise Belegfotos aus GBIF mit Angabe von Urheber und Lizenz.<br><br>
+    <b>Was diese Liste ist – und was nicht:</b> Sie zeigt Arten, für die <i>georeferenzierte Nachweise innerhalb des Gebiets</i> in GBIF vorliegen –
+    das ist keine amtliche und keine vollständige Artenliste. Gebiete mit intensiver Feldforschung oder vielen iNaturalist-Beobachtungen
+    erscheinen artenreicher als schlecht erfasste. Umgekehrt fehlen bekannte Arten, wenn zu ihnen keine Koordinaten veröffentlicht sind
+    (bei stark bejagten Arten wird der Fundort teils bewusst zurückgehalten). Anzahl „Nachweise“ = Beobachtungs-/Belegdatensätze, nicht Individuen.<br><br>
+    <b>Reiter „Charismatisch“:</b> gefiltert auf eine im Quelltext offengelegte Liste von GBIF-Familien/Gruppen
+    (Gibbons, Languren, Plumploris, Elefanten, Katzen, Bären, Hornträger, Hirsche, Schuppentiere, Marder/Otter, Schleichkatzen,
+    Nashornvögel, Fasane, Papageien, Störche, Kraniche, Greifvögel, Pittas, Trogone, Bartvögel, Krokodile, Warane, Pythons,
+    sechs Schildkrötenfamilien, Dugong, Delfine, Ritterfalter sowie Orchideen, Kannenpflanzen, Flügelfruchtgewächse, Palmfarne, Rafflesien).
+    Das ist eine <i>redaktionelle Auswahl</i>, keine Kategorie aus einer wissenschaftlichen Datenbank.
+  </div>`;
+}
+
+/* --- Arten-Reiter: Vögel und Schlangen nach demselben Prinzip --- */
+const ORDNUNG_DE={Passeriformes:'Sperlingsvögel',Charadriiformes:'Regenpfeiferartige (Watvögel, Möwen)',Accipitriformes:'Greifvögel',Piciformes:'Spechtvögel',Cuculiformes:'Kuckucksvögel',Pelecaniformes:'Reiher, Ibisse und Verwandte',Columbiformes:'Tauben',Anseriformes:'Entenvögel',Strigiformes:'Eulen',Apodiformes:'Segler',Gruiformes:'Kranichvögel und Rallen',Coraciiformes:'Rackenvögel (Eisvögel, Spinte)',Galliformes:'Hühnervögel',Falconiformes:'Falken',Caprimulgiformes:'Nachtschwalben',Podicipediformes:'Lappentaucher',Trogoniformes:'Trogone',Bucerotiformes:'Hornvögel und Wiedehopfe',Ciconiiformes:'Störche',Psittaciformes:'Papageien'};
+const FAMILIE_DE={Colubridae:'Nattern',Elapidae:'Giftnattern (Kobras, Kraits)',Viperidae:'Vipern und Grubenottern',Homalopsidae:'Wassertrugnattern',Xenopeltidae:'Erdschlangen',Typhlopidae:'Blindschlangen',Pareidae:'Schneckennattern'};
+const CODE={LEAST_CONCERN:'LC',NEAR_THREATENED:'NT',VULNERABLE:'VU',ENDANGERED:'EN',CRITICALLY_ENDANGERED:'CR',DATA_DEFICIENT:'DD',NOT_EVALUATED:'NE'};
+/* Giftigkeit: redaktionelle Einteilung, keine Datenbankangabe.
+   Stufe 2: Giftnattern, Vipern und Rhabdophis. Stufe 1: Trugnattern mit bekanntem schwachem Gift. */
+const SCHWACH=/^(Boiga|Ahaetulla|Chrysopelea|Enhydris|Myrrophis|Hypsiscopus|Psammodynastes)\b/;
+function giftStufe(a){ if(a.f==='Elapidae'||a.f==='Viperidae'||/^Rhabdophis\b/.test(a.sci)) return 2; return SCHWACH.test(a.sci)?1:0; }
+const GIFTTITEL=['Nicht als gefährlich giftig eingestuft','Schwach giftig','Gefährlich giftig'];
+const REITER=[
+ {id:'voegel',kat:'voegel',einzahl:'Vogelsichtung',mehrzahl:'Vogelsichtungen',farbe:'#7c00ff',titel:'Vögel um Sa Pa',datei:'voegel',stellen:'sichtungen',suche:'Art suchen: deutsch, englisch, vietnamesisch, lateinisch',
+  gbif:'taxon_key=212&decimal_latitude=22.15,22.55&decimal_longitude=103.6,104.05',modi:[['ordnung','Nach Ordnung'],['iucn','Nach Gefährdung']],marke:()=>'',warnung:'',
+  quelle:`<p><b>Quelle:</b> <a href="https://www.gbif.org/occurrence/search?taxon_key=212&decimal_latitude=22.15,22.55&decimal_longitude=103.6,104.05" target="_blank" rel="noopener">GBIF</a>, alle Vogelnachweise im Kartenausschnitt um Sa Pa (22,15–22,55° N, 103,60–104,05° O), wöchentlich abgerufen. Status: IUCN über GBIF. Namen: Wikipedia, sonst GBIF.</p><p><b>Was die Liste ist und was nicht:</b> Sie enthält jede Art mit mindestens einem Nachweis, über alle Jahre und Jahreszeiten. Das sind auch Zugvögel, seltene Irrgäste, Käfigflüchtlinge und mögliche Fehlbestimmungen. Es ist keine amtliche Artenliste. Die Zahl der Nachweise hängt stark davon ab, wie oft eine Art gemeldet wird.</p>`},
+ {id:'schlangen',kat:'schlangen',einzahl:'Schlangensichtung',mehrzahl:'Schlangensichtungen',farbe:'#ff6d00',titel:'Schlangen um Sa Pa',datei:'schlangen',stellen:'schlangen-sichtungen',suche:'Art suchen: deutsch, englisch, vietnamesisch, lateinisch',
+  gbif:'decimal_latitude=22.15,22.55&decimal_longitude=103.6,104.05',modi:[['gift','Nach Giftigkeit'],['familie','Nach Familie'],['iucn','Nach Gefährdung']],
+  marke:a=>{const s=giftStufe(a);return s===2?' <span class="gift">giftig</span>':s===1?' <span class="gift schwach">schwach giftig</span>':'';},
+  warnung:'<b>Keine Bestimmungshilfe.</b> Schlangen nicht anfassen, auch vermeintlich harmlose nicht. Das Fehlen eines Punkts heißt nicht, dass dort keine Schlangen leben. Nach jedem Biss sofort ins Krankenhaus, auch ohne Schmerzen, denn manche Bisse wirken erst später. Rettungsnummer in Vietnam: 115. Krankenhäuser findest du im Reiter „Karte“ unter „Sehenswertes und Alltag“.',
+  quelle:`<p><b>Quelle:</b> <a href="https://www.gbif.org/occurrence/search?decimal_latitude=22.15,22.55&decimal_longitude=103.6,104.05" target="_blank" rel="noopener">GBIF</a>, Nachweise der Schlangenfamilien im Kartenausschnitt um Sa Pa (22,15–22,55° N, 103,60–104,05° O), wöchentlich abgerufen. Status: IUCN über GBIF. Namen: Wikipedia, sonst GBIF.</p><p><b>Giftigkeit:</b> redaktionelle Einteilung für diese Karte, keine Datenbankangabe und keine medizinische Auskunft. „Gefährlich giftig“ sind Giftnattern, Vipern und Rhabdophis. „Nicht als gefährlich eingestuft“ heißt nicht harmlos: Auch ungiftige Schlangen beißen, und die Bestimmung ist oft unsicher.</p><p><b>Was die Liste ist und was nicht:</b> Es gibt nur wenige Nachweise, weil Schlangen selten gemeldet werden. Die Liste ist also sicher unvollständig, und Fundorte werden bei gesuchten Arten teils zurückgehalten. Es ist keine amtliche Artenliste.</p>`}
+];
+const VZAHL=new Intl.NumberFormat('de-DE');
+const vName=a=>a.de||a.en||a.sci;
+function vZeile(cfg,a){ const zweit=[a.de?a.en:null,a.vi].filter(Boolean).join(' · ');
+  return `<div class="va" data-k="${a.k}"><span class="zn">${fmtN(a.n)}</span>${esc(vName(a))} <span class="iucn i-${a.c}">${a.c}</span>${cfg.marke(a)}<small><i>${esc(a.sci)}</i>${zweit?' · '+esc(zweit):''}</small></div>`; }
+function vGruppen(cfg){
+  const sammle=(liste,fn)=>{const m=new Map(); liste.forEach(a=>{const k=fn(a); if(!m.has(k)) m.set(k,[]); m.get(k).push(a);}); return m;};
+  if(cfg.modus==='iucn') return [...sammle([...cfg.arten].sort((a,b)=>(RANK[a.c]??9)-(RANK[b.c]??9)||b.n-a.n),a=>a.c)].map(([c,l])=>({t:`${c} · ${IUCN_DE[c]||'nicht bewertet'}`,u:'',l,fam:false}));
+  if(cfg.modus==='gift') return [...sammle(cfg.arten,giftStufe)].sort((a,b)=>b[0]-a[0]).map(([s,l])=>({t:GIFTTITEL[s],u:'',l,fam:false,offen:s===2}));
+  if(cfg.modus==='familie') return [...sammle(cfg.arten,a=>a.f||'Familie unbekannt')].sort((a,b)=>b[1].length-a[1].length).map(([f,l])=>({t:FAMILIE_DE[f]||f,u:f,l,fam:false}));
+  return [...sammle(cfg.arten,a=>a.o||'Ohne Angabe')].sort((a,b)=>b[1].length-a[1].length).map(([o,l])=>({t:ORDNUNG_DE[o]||o,u:o,l,fam:true}));
+}
+function vInhalt(cfg,g){ if(!g.fam) return g.l.map(a=>vZeile(cfg,a)).join('');
+  const m=new Map(); g.l.forEach(a=>{ const f=a.f||'Familie unbekannt'; if(!m.has(f)) m.set(f,[]); m.get(f).push(a); });
+  return [...m].sort((a,b)=>b[1].length-a[1].length).map(([f,l])=>`<div class="fam">${esc(f)} · ${l.length}</div>`+l.map(a=>vZeile(cfg,a)).join('')).join(''); }
+function vZeichne(cfg){
+  const host=cfg.el.querySelector('.vliste'), s=cfg.el.querySelector('.vq').value.trim().toLowerCase();
+  if(!cfg.arten) return;
+  if(s.length>=2){ const t=cfg.arten.filter(a=>[a.de,a.en,a.vi,a.sci,a.o,a.f].some(x=>x&&x.toLowerCase().includes(s)));
+    host.innerHTML=t.length?t.map(a=>vZeile(cfg,a)).join(''):'<div class="spin">Keine Art gefunden.</div>'; return; }
+  const gr=vGruppen(cfg); host.innerHTML=gr.map((g,i)=>`<details data-i="${i}"><summary>${esc(g.t)}<small>${esc(g.u)}</small><span>${g.l.length}</span></summary><div class="vi"></div></details>`).join('');
+  host.querySelectorAll('details').forEach(d=>{ d.addEventListener('toggle',()=>{ const b=d.querySelector('.vi'); if(d.open&&!b.innerHTML) b.innerHTML=vInhalt(cfg,gr[+d.dataset.i]); }); if(gr[+d.dataset.i].offen) d.open=true; });
+}
+async function holeDatei(name){ for(const u of [`daten/${name}.json`,`https://raw.githubusercontent.com/kidkodama/schutzgebiete-vietnam/main/sapa/daten/${name}.json`]){
+    try{ const {r:a,text}=await mitFrist(u,{}); if(a.ok) return JSON.parse(text); }catch(e){} } throw new Error('Datei nicht erreichbar'); }
+async function vLaden(cfg){
+  if(cfg.arten) return;
+  const sub=cfg.el.querySelector('.vsub');
+  try{ const r=await laden(cfg.datei,()=>holeDatei(cfg.datei));
+    cfg.arten=r.daten.arten.map(a=>({...a,c:CODE[a.iucn]||'NE'}));
+    const gef=cfg.arten.filter(a=>THREAT.includes(a.c)).length;
+    sub.innerHTML=`<b>${cfg.arten.length} Arten</b> aus ${fmtN(r.daten.nachweise)} Nachweisen, davon ${gef} gefährdet (IUCN VU, EN, CR). Rechts steht die Zahl der Nachweise. Stand ${esc(r.daten.stand)}. Art antippen für Foto und Text.`;
+    vZeichne(cfg);
+  }catch(e){ sub.textContent='Liste konnte nicht geladen werden ('+e.message+'). Seite neu laden.'; }
+}
+function vArtName(cfg,k){ const a=cfg.arten&&cfg.arten.find(x=>x.k===k); return a?esc(vName(a))+cfg.marke(a):'Art '+k; }
+function vStellePopup(cfg,s,stand){
+  const zeilen=s.a.slice(0,12).map(([k,z,d])=>`<tr><td>${VZAHL.format(z)}×</td><td><a style="color:#4db6ac" target="_blank" rel="noopener" href="https://www.gbif.org/species/${k}">${vArtName(cfg,k)}</a>${d?`<br><span style="color:var(--muted);font-size:11px">zuletzt ${esc(d)}</span>`:''}</td></tr>`).join('');
+  return `<div class="pt">${VZAHL.format(s.n)} ${s.n===1?cfg.einzahl:cfg.mehrzahl}</div><div class="pd">${s.a.length} Art${s.a.length===1?'':'en'} an dieser Stelle (rund 200 m)${s.a.length>12?', hier die 12 häufigsten':''}</div>
+    <table class="pk">${zeilen}</table><div class="pd" style="margin:9px 0 0 0"><b>Quellen:</b> ${s.q.map(q=>esc(q[0])+' ('+VZAHL.format(q[1])+')').join(', ')}<br>Über <a style="color:#4db6ac" target="_blank" rel="noopener" href="https://www.gbif.org/occurrence/search?${cfg.gbif}">GBIF.org</a>, gemeldete Daten, nicht einzeln geprüft. Stand ${esc(stand)}.</div>`;
+}
+async function ladeSichtungen(cfg){ const st=`st-${cfg.id}`; setz(st,cfg.mehrzahl+' laden …');
+  try{ await vLaden(cfg);
+    const r=await laden(cfg.stellen,()=>holeDatei(cfg.stellen)); const d=r.daten;
+    [...d.stellen].sort((x,y)=>y.n-x.n).forEach(s=>{ const m=L.circleMarker([s.la,s.lo],{radius:Math.min(15,(cfg.id==='schlangen'?7:5)+Math.sqrt(s.n)/1.6),color:'#fff',weight:2,fillColor:cfg.farbe,fillOpacity:.92,bubblingMouseEvents:false});
+      m.bindTooltip(`${s.n} ${s.n===1?cfg.einzahl:cfg.mehrzahl}, ${s.a.length} Art${s.a.length===1?'':'en'}`,{direction:'top'}); m.bindPopup(()=>vStellePopup(cfg,s,d.stand),{maxWidth:320}); m.addTo(groups[cfg.kat]); });
+    zaehler[cfg.kat]=d.stellen.length; zeige(); ordnenBald();
+    document.getElementById(st).innerHTML=`${esc(cfg.mehrzahl)}: ${VZAHL.format(d.sichtungen)} an ${VZAHL.format(d.stellen.length)} Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: <a style="color:var(--accent)" target="_blank" rel="noopener" href="https://www.gbif.org/occurrence/search?${cfg.gbif}">GBIF.org</a>.`;
+  }catch(e){ setz(st,cfg.mehrzahl+' konnten nicht geladen werden ('+e.message+'). Seite neu laden.'); }
+}
+const BELEG={HUMAN_OBSERVATION:'Beobachtung',MACHINE_OBSERVATION:'Automatische Erfassung',PRESERVED_SPECIMEN:'Museumsbeleg',LIVING_SPECIMEN:'Lebendes Exemplar',MATERIAL_SAMPLE:'Probe',OCCURRENCE:'Nachweis',OBSERVATION:'Beobachtung'};
+function vBelegZeile(o){
+  const quelle=o.datasetName||o.institutionCode||'Datensatz ohne Namen';
+  return `<div style="padding:6px 0;border-top:1px solid #2b3843"><b>${esc((o.eventDate||'Datum unbekannt').slice(0,10))}</b> · ${esc(BELEG[o.basisOfRecord]||o.basisOfRecord||'Nachweis')}
+    ${o.recordedBy?`<br>Von: ${esc(o.recordedBy)}`:''}<br>Quelle: ${esc(quelle)}<br><a style="color:#4db6ac" target="_blank" rel="noopener" href="https://www.gbif.org/occurrence/${encodeURIComponent(o.key)}">Datensatz bei GBIF</a></div>`;
+}
+let vDichte=null, vBanner=null, vLauf=0;
+function vBannerZeigen(a,text){
+  if(vBanner) vBanner.remove();
+  vBanner=L.control({position:'bottomleft'});
+  vBanner.onAdd=()=>{ const d=L.DomUtil.create('div','vbanner');
+    d.innerHTML=`<b>${esc(vName(a))}</b><br>${esc(text)}<br>Quelle: <a style="color:#4db6ac" target="_blank" rel="noopener" href="https://www.gbif.org/occurrence/search?taxon_key=${a.k}&decimal_latitude=22.15,22.55&decimal_longitude=103.6,104.05">GBIF.org</a>`;
+    const b=L.DomUtil.create('button','',d); b.textContent='Ausblenden'; L.DomEvent.disableClickPropagation(d);
+    b.onclick=()=>{ if(vDichte) map.removeLayer(vDichte); vDichte=null; vBanner.remove(); vBanner=null; vLauf++; }; return d; };
+  vBanner.addTo(map);
+}
+function vAlleAus(){ REITER.forEach(c=>{ const i=[...document.querySelectorAll('#g-natur label')].find(l=>l.textContent.includes(c.mehrzahl))?.querySelector('input'); if(i&&i.checked) i.click(); }); }
+async function vAufKarte(cfg,a){
+  const lauf=++vLauf; vAlleAus();
+  if(vDichte) map.removeLayer(vDichte);
+  vDichte=L.layerGroup().addTo(map);
+  if(window.matchMedia('(max-width:820px)').matches) ansicht('karte');
+  vBannerZeigen(a,'Sichtungen werden geladen …');
+  try{
+    const alle=[]; let gesamt=0;
+    for(let start=0;start<1500;start+=300){
+      const u=`https://api.gbif.org/v1/occurrence/search?taxonKey=${a.k}&decimalLatitude=22.15,22.55&decimalLongitude=103.6,104.05&hasCoordinate=true&hasGeospatialIssue=false&occurrenceStatus=PRESENT&limit=300&offset=${start}`;
+      const {r,text}=await mitFrist(u,{}); if(!r.ok) throw new Error('GBIF '+r.status);
+      const j=JSON.parse(text); if(lauf!==vLauf) return;
+      alle.push(...j.results); gesamt=j.count; if(j.endOfRecords||!j.results.length) break;
+      vBannerZeigen(a,`${VZAHL.format(alle.length)} von ${VZAHL.format(gesamt)} Sichtungen geladen …`);
+    }
+    const orte_=new Map();
+    alle.forEach(o=>{ if(o.decimalLatitude==null||o.decimalLongitude==null) return; const k=o.decimalLatitude.toFixed(4)+','+o.decimalLongitude.toFixed(4); if(!orte_.has(k)) orte_.set(k,[]); orte_.get(k).push(o); });
+    const marken=[];
+    orte_.forEach(l=>{ l.sort((x,y)=>String(y.eventDate||'').localeCompare(String(x.eventDate||'')));
+      const m=L.circleMarker([l[0].decimalLatitude,l[0].decimalLongitude],{radius:Math.min(16,8+Math.sqrt(l.length)),color:'#fff',weight:2.5,fillColor:cfg.farbe,fillOpacity:.92,bubblingMouseEvents:false});
+      m.bindTooltip(`${vName(a)}: ${l.length} Sichtung${l.length===1?'':'en'}`,{direction:'top'});
+      m.bindPopup(()=>`<div class="pt">${esc(vName(a))}${cfg.marke(a)}</div><div class="pd">${l.length} Sichtung${l.length===1?'':'en'} an dieser Stelle${l.length>10?', hier die 10 neuesten':''}</div>${l.slice(0,10).map(vBelegZeile).join('')}<div class="pd" style="margin:8px 0 0 0">Quelle: GBIF.org. Gemeldete Daten, nicht einzeln geprüft.</div>`,{maxWidth:320});
+      m.addTo(vDichte); marken.push(m); });
+    if(lauf!==vLauf) return;
+    ordnenBald();
+    if(marken.length){ const b=L.featureGroup(marken).getBounds(); if(b.isValid()) map.fitBounds(b,{maxZoom:14,padding:[50,50]}); }
+    vBannerZeigen(a,marken.length?`${VZAHL.format(alle.length)}${gesamt>alle.length?' von '+VZAHL.format(gesamt):''} Sichtungen an ${VZAHL.format(marken.length)} Stellen. Punkt antippen für Datum und Quelle.`:'Keine Sichtungen mit Koordinaten gefunden.');
+  }catch(e){ if(lauf===vLauf) vBannerZeigen(a,'Sichtungen konnten nicht geladen werden ('+e.message+').'); }
+}
+function ansicht(a){
+  document.querySelectorAll('#ansichten .tab').forEach(x=>x.classList.toggle('on',x.dataset.a===a));
+  document.getElementById('a-karte').hidden=a!=='karte'; document.getElementById('a-wandern').hidden=a!=='wandern'; REITER.forEach(c=>{c.el.hidden=c.id!==a;});
+  document.body.classList.toggle('nurliste',a!=='karte'); document.getElementById('side').scrollTop=0;
+  setTimeout(()=>map.invalidateSize(),50); const c=REITER.find(x=>x.id===a); if(c) vLaden(c);
+}
+REITER.forEach(cfg=>{
+  cfg.el=document.getElementById('a-'+cfg.id); cfg.modus=cfg.modi[0][0];
+  cfg.el.innerHTML=`<div class="pad"><h1>${esc(cfg.titel)}</h1><div class="sub vsub">Liste wird geladen …</div></div>
+    ${cfg.warnung?`<div class="warnung">${cfg.warnung}</div>`:''}
+    <input class="vq" placeholder="${esc(cfg.suche)}" autocomplete="off">
+    <div class="btnrow">${cfg.modi.map(([m,t],i)=>`<button class="btn${i?'':' von'}" data-m="${m}">${t}</button>`).join('')}</div>
+    <div class="vliste"></div><div class="src" style="padding-top:12px">${cfg.quelle}</div>`;
+  cfg.el.querySelector('.vliste').addEventListener('click',async e=>{
+    const finde=k=>cfg.arten.find(a=>a.k===+k), knopf=e.target.closest('.vk');
+    if(knopf){ vAufKarte(cfg,finde(knopf.dataset.k)); return; }
+    const z=e.target.closest('.va'); if(!z) return;
+    if(z.nextElementSibling&&z.nextElementSibling.classList.contains('vd')){ z.nextElementSibling.remove(); return; }
+    const a=finde(z.dataset.k), box=document.createElement('div'); box.className='vd'; box.textContent='Wird geladen …'; z.after(box);
+    const s=await enrich({key:a.k,sci:a.sci,cls:cfg.id==='voegel'?'Aves':'Squamata',order:a.o,family:a.f,iucn:a.c,n:a.n});
+    box.innerHTML=spCard({...s,de:a.de||s.de,en:a.en||s.en})+`<button class="vk" data-k="${a.k}">Sichtungen auf der Karte zeigen</button>`;
+  });
+  cfg.el.querySelector('.vq').addEventListener('input',()=>vZeichne(cfg));
+  cfg.el.querySelectorAll('.btn').forEach(b=>b.onclick=()=>{ cfg.modus=b.dataset.m; cfg.el.querySelectorAll('.btn').forEach(x=>x.classList.toggle('von',x===b)); vZeichne(cfg); });
+});
+document.querySelectorAll('#ansichten .tab').forEach(x=>x.onclick=()=>ansicht(x.dataset.a));
+
+/* --- Reiter „Wandern“: Routen und benannte Wege aus OpenStreetMap --- */
+const SAC={hiking:[1,'T1 Wandern'],mountain_hiking:[2,'T2 Bergwandern'],demanding_mountain_hiking:[3,'T3 anspruchsvolles Bergwandern'],alpine_hiking:[4,'T4 Alpinwandern'],demanding_alpine_hiking:[5,'T5 anspruchsvolles Alpinwandern'],difficult_alpine_hiking:[6,'T6 schwieriges Alpinwandern']};
+const WEGTYP={path:'Pfad',track:'Feldweg',footway:'Fußweg',steps:'Treppen',bridleway:'Reitweg'};
+const W={liste:[],sort:'laenge',hl:null,banner:null,el:document.getElementById('a-wandern')};
+const wLaenge=ls=>ls.reduce((s,p)=>{for(let i=1;i<p.length;i++) s+=metres(p[i-1][0],p[i-1][1],p[i][0],p[i][1]); return s;},0);
+const wKm=m=>(m/1000).toLocaleString('de-DE',{maximumFractionDigits:m<10000?1:0})+' km';
+function wSac(e){ return e.sac&&SAC[e.sac]?SAC[e.sac][1]:'Schwierigkeit nicht angegeben'; }
+function wDetails(e){
+  const t=e.tags, z=[['Länge',(t.distance?esc(t.distance)+(/[a-z]/i.test(t.distance)?'':' km')+' laut OpenStreetMap, ':'')+'berechnet '+wKm(e.m)],['Schwierigkeit',wSac(e)],
+    ['Start',t.from],['Ziel',t.to],['Aufstieg',t.ascent&&t.ascent+' m'],['Abstieg',t.descent&&t.descent+' m'],['Weg',e.typen],['Belag',t.surface],['Sichtbarkeit',t.trail_visibility],['Betreiber',t.operator]].filter(x=>x[1]);
+  return `<div class="pt">${esc(e.name)}</div><div class="pd"><span class="badge" style="background:${e.art==='route'?KAT.routen.c:KAT.wege.c};color:#111">${e.art==='route'?'Wanderroute':'Benannter Weg'}</span></div>
+   <table class="pk">${z.map(x=>`<tr><td>${x[0]}</td><td>${esc(x[1])}</td></tr>`).join('')}</table>${t.description?`<div class="wiki">${esc(trim(t.description,300))}</div>`:''}
+   <div class="lnk"><a target="_blank" rel="noopener" href="https://www.openstreetmap.org/${e.osm}">In OpenStreetMap ansehen</a></div>
+   <div class="pd" style="margin:8px 0 0 0">Quelle: OpenStreetMap (ODbL). Nicht auf Begehbarkeit geprüft, keine Gehzeit.</div>`;
+}
+function wGpx(e){
+  const seg=e.linien.map(l=>'<trkseg>'+l.map(p=>`<trkpt lat="${p[0]}" lon="${p[1]}"/>`).join('')+'</trkseg>').join('\n');
+  const x=`<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Sa-Pa-Karte" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>${esc(e.name)}</name><copyright author="OpenStreetMap-Mitwirkende"><license>https://opendatacommons.org/licenses/odbl/</license></copyright></metadata>\n<trk><name>${esc(e.name)}</name>\n${seg}\n</trk></gpx>`;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([x],{type:'application/gpx+xml'}));
+  a.download=(e.name.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/gi,'d').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'')||'weg')+'.gpx';
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},2000);
+}
+function wAus(){ if(W.hl){map.removeLayer(W.hl);W.hl=null;} if(W.banner){W.banner.remove();W.banner=null;} }
+function wZeige(e){
+  wAus(); if(window.matchMedia('(max-width:820px)').matches) ansicht('karte');
+  W.hl=L.featureGroup([L.polyline(e.linien,{color:'#111',weight:10,opacity:.55,interactive:false}),L.polyline(e.linien,{color:'#00e5ff',weight:6,opacity:1,interactive:false})]).addTo(map);
+  const b=W.hl.getBounds(); if(b.isValid()) map.fitBounds(b,{maxZoom:16,padding:[50,50]});
+  W.banner=L.control({position:'bottomleft'});
+  W.banner.onAdd=()=>{ const d=L.DomUtil.create('div','vbanner'); d.innerHTML=`<b>${esc(e.name)}</b><br>${wKm(e.m)} · ${esc(wSac(e))}<br>Quelle: OpenStreetMap`;
+    const g=L.DomUtil.create('button','',d); g.textContent='GPX speichern'; g.onclick=()=>wGpx(e);
+    const i=L.DomUtil.create('button','',d); i.textContent='Details'; i.onclick=()=>L.popup({maxWidth:330}).setLatLng(b.getCenter()).setContent(wDetails(e)).openOn(map);
+    const x=L.DomUtil.create('button','',d); x.textContent='Ausblenden'; x.onclick=wAus; L.DomEvent.disableClickPropagation(d); return d; };
+  W.banner.addTo(map);
+}
+function wZeile(e){ return `<div class="va" data-i="${e.i}"><span class="zn">${wKm(e.m)}</span>${esc(e.name)}<small>${e.art==='route'?'Wanderroute':'Weg'} · ${esc(wSac(e))}${e.typen?' · '+esc(e.typen):''}</small></div>`; }
+function wZeichne(){
+  const host=W.el.querySelector('.vliste'), s=W.el.querySelector('.vq').value.trim().toLowerCase();
+  const sortiert=l=>[...l].sort(W.sort==='name'?(a,b)=>a.name.localeCompare(b.name,'vi'):W.sort==='sac'?(a,b)=>((SAC[b.sac]||[0])[0]-(SAC[a.sac]||[0])[0])||b.m-a.m:(a,b)=>b.m-a.m);
+  const l=s.length>=2?W.liste.filter(e=>e.name.toLowerCase().includes(s)||(e.tags['name:en']||'').toLowerCase().includes(s)):W.liste;
+  const gr=[['Wanderrouten',sortiert(l.filter(e=>e.art==='route'))],['Benannte Wege und Pfade',sortiert(l.filter(e=>e.art==='weg'))]];
+  host.innerHTML=gr.map(([titel,x],i)=>`<details open><summary>${titel}<small></small><span>${x.length}</span></summary><div class="vi">${x.map(wZeile).join('')||'<div class="spin">Keine Einträge.</div>'}</div></details>`).join('');
+}
+function wAufbau(){
+  W.el.innerHTML=`<div class="pad"><h1>Wandern um Sa Pa</h1><div class="sub vsub">Wege werden geladen …</div></div>
+   <div class="warnung"><b>Keine geprüften Touren.</b> Alle Wege stammen aus OpenStreetMap und sind nicht auf Begehbarkeit geprüft. Die Länge ist aus den Wegpunkten berechnet. Höhenmeter und Gehzeit kennt die Karte nur, wenn OpenStreetMap sie führt. Zustand, Erdrutsche nach Regen und Zugangsregeln im Nationalpark vor Ort erfragen.</div>
+   <input class="vq" placeholder="Weg oder Route suchen, z. B. Fansipan, Cát Cát" autocomplete="off">
+   <div class="btnrow"><button class="btn von" data-m="laenge">Nach Länge</button><button class="btn" data-m="sac">Nach Schwierigkeit</button><button class="btn" data-m="name">Nach Name</button></div>
+   <div class="vliste"></div>
+   <div class="src" style="padding-top:12px"><p><b>Quelle:</b> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende (ODbL): Wanderrouten (route=hiking/foot) und benannte Pfade, Feld- und Fußwege im Kartenausschnitt, wöchentlich abgerufen.</p>
+   <p><b>Schwierigkeit:</b> SAC-Skala T1 bis T6, nur wo OpenStreetMap sie angibt. Bei benannten Wegen gilt die häufigste Angabe der Teilstücke.</p>
+   <p><b>GPX:</b> „GPX speichern“ legt den Weg als Datei ab, etwa für eine Wander-App. Am iPad landet sie in der Dateien-App.</p></div>`;
+  W.el.querySelector('.vq').addEventListener('input',wZeichne);
+  W.el.querySelectorAll('.btn').forEach(b=>b.onclick=()=>{ W.sort=b.dataset.m; W.el.querySelectorAll('.btn').forEach(x=>x.classList.toggle('von',x===b)); wZeichne(); });
+  W.el.querySelector('.vliste').addEventListener('click',e=>{ const z=e.target.closest('.va'); if(z) wZeige(W.liste[+z.dataset.i]); });
+}
+function wNeu(e){ e.i=W.liste.length; W.liste.push(e); return e; }
+async function ladeWandern(){
+  wAufbau(); const sub=W.el.querySelector('.vsub'); const teile=[];
+  try{ const r=await laden('routen',()=>osmDaten('routen',`relation["route"~"^(hiking|foot|walking)$"](${BB_GANZ});out geom;`));
+    r.daten.elements.forEach(x=>{ const linien=(x.members||[]).map(m=>(m.geometry||[]).map(q=>[q.lat,q.lon])).filter(l=>l.length>1); if(!linien.length) return;
+      const t=x.tags||{}; const e=wNeu({art:'route',name:name(t)||'Wanderroute ohne Namen',tags:t,linien,m:wLaenge(linien),sac:t.sac_scale,typen:'',osm:'relation/'+x.id});
+      const l=L.polyline(linien,{color:KAT.routen.c,weight:4,opacity:.9,bubblingMouseEvents:false}); l.bindTooltip(e.name,{sticky:true}); l.on('click',ev=>{L.DomEvent.stopPropagation(ev); wZeige(e);});
+      l.addTo(groups.routen); records.push({name:e.name,d:'routen',layer:l}); zaehler.routen++; });
+    teile.push(`${zaehler.routen} Wanderrouten`);
+  }catch(err){ teile.push('Wanderrouten nicht geladen ('+err.message+')'); }
+  try{ const r=await laden('wege',()=>osmDaten('wege',`way["highway"~"^(path|track|footway|steps|bridleway)$"](${BB_GANZ});out tags geom;`));
+    const alle=[], benannt=new Map();
+    r.daten.elements.forEach(x=>{ if(!x.geometry||x.geometry.length<2) return; const p=x.geometry.map(q=>[q.lat,q.lon]); alle.push(p); zaehler.wege++;
+      const n=name(x.tags||{}); if(!n) return; if(!benannt.has(n)) benannt.set(n,{ways:[],sac:{},typ:new Set(),tags:x.tags,id:x.id}); const b=benannt.get(n);
+      b.ways.push(p); if(x.tags.sac_scale) b.sac[x.tags.sac_scale]=(b.sac[x.tags.sac_scale]||0)+1; b.typ.add(WEGTYP[x.tags.highway]||x.tags.highway); });
+    L.polyline(alle,{color:KAT.wege.c,weight:2.5,opacity:.95,dashArray:'5,4',interactive:false}).addTo(groups.wege);
+    benannt.forEach((b,n)=>{ const sac=Object.entries(b.sac).sort((x,y)=>y[1]-x[1])[0]; wNeu({art:'weg',name:n,tags:b.tags,linien:b.ways,m:wLaenge(b.ways),sac:sac&&sac[0],typen:[...b.typ].join(', '),osm:'way/'+b.id}); });
+    teile.push(`${VZAHL.format(benannt.size)} benannte Wege, ${VZAHL.format(zaehler.wege)} Wegstücke insgesamt`);
+  }catch(err){ teile.push('Wege nicht geladen ('+err.message+')'); }
+  zeige(); ordnenBald(); wZeichne();
+  sub.innerHTML=teile.map(esc).join(' · ')+'. Eintrag antippen: Weg wird auf der Karte hervorgehoben, mit GPX-Datei und Details.';
+}
+
+RUHIG.forEach(r=>viertelMarke(r[0],r[2],r[3],r[1]));
+zeige(); suche();
+const viertelSicht=()=>map.getContainer().classList.toggle('fern',map.getZoom()<13);
+map.on('zoomend',viertelSicht); viertelSicht();
+/* Jeder Server hat eine Frist: Hängt einer, läuft der Rest trotzdem weiter */
+ladeWdpa();
+ladeOrte();
+ladeWandern();
+REITER.forEach(ladeSichtungen);
+(async()=>{ await ladeNatur(); await ladeStrassen(); })();
+</script>
+</body>
+</html>
