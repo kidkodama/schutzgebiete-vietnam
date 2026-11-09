@@ -917,7 +917,7 @@ function wZeige(e){
   W.hl=L.featureGroup([L.polyline(e.linien,{color:'#111',weight:10,opacity:.55,interactive:false}),L.polyline(e.linien,{color:'#00e5ff',weight:6,opacity:1,interactive:false})]).addTo(map);
   const b=W.hl.getBounds(); if(b.isValid()) map.fitBounds(b,{maxZoom:16,padding:[50,50]});
   W.banner=L.control({position:'bottomleft'});
-  W.banner.onAdd=()=>{ const d=L.DomUtil.create('div','vbanner'); d.innerHTML=`<b>${esc(e.name)}</b><br>${wKm(e.m)} · ${esc(wSac(e))}<br>Quelle: OpenStreetMap`;
+  W.banner.onAdd=()=>{ const d=L.DomUtil.create('div','vbanner'); d.innerHTML=`<b>${esc(e.name)}</b><br>${wKm(e.m)} · ${esc(wSac(e))}<br>Quelle: OpenStreetMap<br>`;
     const g=L.DomUtil.create('button','',d); g.textContent='GPX speichern'; g.onclick=()=>wGpx(e);
     const i=L.DomUtil.create('button','',d); i.textContent='Details'; i.onclick=()=>L.popup({maxWidth:330}).setLatLng(b.getCenter()).setContent(wDetails(e)).openOn(map);
     const x=L.DomUtil.create('button','',d); x.textContent='Ausblenden'; x.onclick=wAus; L.DomEvent.disableClickPropagation(d); return d; };
