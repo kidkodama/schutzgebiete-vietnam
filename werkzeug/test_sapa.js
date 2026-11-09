@@ -19,7 +19,7 @@ const URL_ = 'https://kidkodama.github.io/schutzgebiete-vietnam/sapa/?t=' + Date
     await p.waitForTimeout(3500);
     console.log('Fansipan', (await p.locator('.leaflet-popup-content').textContent().catch(() => 'KEIN POPUP')).replace(/\s+/g, ' ').slice(0, 300));
     await p.screenshot({ path: `test-bilder/${nm}-2-fansipan.png` });
-    await p.evaluate(() => map.closePopup());
+    await p.evaluate(() => { map.closePopup(); });
     await p.locator('#ansichten .tab[data-a=wandern]').click(); await p.waitForTimeout(500);
     console.log('Wandern', await p.textContent('#a-wandern .vsub'));
     await p.screenshot({ path: `test-bilder/${nm}-3-wandern.png` });
