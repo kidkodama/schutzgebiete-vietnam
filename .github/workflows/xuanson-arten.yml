@@ -1,0 +1,21 @@
+name: Xuân-Sơn-Vögel und Schlangen holen
+on:
+  push:
+    paths: ['.github/workflows/xuanson-arten.yml','werkzeug/xuanson_voegel.py','werkzeug/xuanson_schlangen.py']
+  schedule:
+    - cron: '53 4 * * 3'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  holen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p xuanson/daten && python3 werkzeug/xuanson_voegel.py && python3 werkzeug/xuanson_schlangen.py
+      - run: |
+          git config user.name "sapa-daten"
+          git config user.email "sapa-daten@users.noreply.github.com"
+          git add xuanson/daten
+          git diff --cached --quiet || { git commit -m "Xuân-Sơn-Arten aktualisiert"; git pull --rebase origin main; git push; }
