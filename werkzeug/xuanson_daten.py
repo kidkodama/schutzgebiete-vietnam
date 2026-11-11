@@ -14,6 +14,7 @@ TEILE = {
  "wege": f'way["highway"~"^(path|track|footway|steps|bridleway)$"]({G});out tags geom;',
  "routen": f'relation["route"~"^(hiking|foot|walking)$"]({G});out geom;',
 }
+LEER_ERLAUBT = True  # in Xuân Sơn ist OpenStreetMap dünn: leeres Ergebnis ist gültig
 def hole(abfrage):
     koerper = urllib.parse.urlencode({"data": "[out:json][timeout:170];" + abfrage}).encode()
     for runde in range(3):
@@ -22,6 +23,7 @@ def hole(abfrage):
                 q = urllib.request.Request(u, koerper, {"User-Agent": "xuanson-karte (github.com/kidkodama/schutzgebiete-vietnam)"})
                 d = json.load(urllib.request.urlopen(q, timeout=180))
                 if d.get("elements"): return d, u
+                if "elements" in d and not d.get("remark") and LEER_ERLAUBT: return d, u  # echt leer, kein Serverfehler
                 print("  leer:", u, d.get("remark", ""))
             except Exception as e:
                 print("  fehlgeschlagen:", u, e)
