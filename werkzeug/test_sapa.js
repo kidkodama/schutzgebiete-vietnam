@@ -16,7 +16,7 @@ const URL_ = `https://kidkodama.github.io/schutzgebiete-vietnam/${ORT}/?t=` + Da
     for (const i of ['st-natur', 'st-voegel', 'st-schlangen', 'st-wdpa', 'st-stadt', 'st-orte']) console.log(i, (await p.textContent('#' + i)).slice(0, 150));
     console.log('Zähler', JSON.stringify(await p.evaluate(() => zaehler)));
     await p.screenshot({ path: `test-bilder/${nm}-1-karte.png` });
-    await p.evaluate(() => { const r = records.find(x => GIPFEL.test(x.name)); if (r) { map.setView(r.layer.getLatLng(), 14, { animate: false }); r.layer.openPopup(); } });
+    await p.evaluate((muster) => { const R = new RegExp(muster); const r = records.find(x => R.test(x.name)); if (r) { map.setView(r.layer.getLatLng ? r.layer.getLatLng() : r.layer.getBounds().getCenter(), 13, { animate: false }); r.layer.openPopup ? r.layer.openPopup() : null; } }, GIPFEL.source);
     await p.waitForTimeout(3500);
     console.log('Gipfel', (await p.locator('.leaflet-popup-content').textContent().catch(() => 'KEIN POPUP')).replace(/\s+/g, ' ').slice(0, 300));
     await p.screenshot({ path: `test-bilder/${nm}-2-fansipan.png` });
