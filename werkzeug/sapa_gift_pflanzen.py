@@ -76,6 +76,8 @@ GRUPPEN = [
  ("skorpione", [("Scorpiones", "ORDER")]),
  ("hundertfuesser", [("Scolopendromorpha", "ORDER")]),
  ("raupen", [("Limacodidae", "FAMILY")]),
+ ("spinnen", [("Theraphosidae", "FAMILY"), ("Latrodectus", "GENUS")]),
+ ("kaefer", [("Paederus", "GENUS"), ("Meloidae", "FAMILY")]),
  ("amphibien", [("Bufonidae", "FAMILY"), ("Tylototriton", "GENUS")]),
 ]
 gift = []
