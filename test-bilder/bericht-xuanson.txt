@@ -1,0 +1,24 @@
+=== xuanson-ipad
+st-natur 2 Einträge geladen.
+st-voegel Vogelsichtungen: 26 an 11 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-schlangen Schlangensichtungen: 12 an 8 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-wdpa 4 Gebiete geladen.
+st-stadt 125 Straßenabschnitte geladen.
+st-orte Sehenswertes: 4 · Alltag: 2 · Viertel und Verkehr: 5
+Zähler {"park":0,"garten":0,"wasser":1,"zoo":0,"reservat":1,"voegel":11,"schlangen":8,"wdpa":4,"ruhig":1,"routen":0,"wege":513,"viertel":4,"strasse":125,"verkehr":0,"bahn":0,"sehen":4,"markt":0,"gesund":1,"amt":1,"unterkunft":0}
+Gipfel KEIN POPUP
+Wandern 0 Wanderrouten · 11 unbenannte Pfade ab 1 km · 0 benannte Wege, 513 Wegstücke insgesamt. Eintrag antippen: Weg wird auf der Karte hervorgehoben, mit GPX-Datei und Details.
+Banner Unbenannter Pfad Richtung Núi Cẩn4,2 km · Schwierigkeit nicht angegebenQuelle: OpenStreetMapGPX speichernDetailsAusblenden
+Fehlgeschlagene Abrufe {}
+=== xuanson-iphone
+st-natur 2 Einträge geladen.
+st-voegel Vogelsichtungen: 26 an 11 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-schlangen Schlangensichtungen: 12 an 8 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-wdpa 4 Gebiete geladen.
+st-stadt 125 Straßenabschnitte geladen.
+st-orte Sehenswertes: 4 · Alltag: 2 · Viertel und Verkehr: 5
+Zähler {"park":0,"garten":0,"wasser":1,"zoo":0,"reservat":1,"voegel":11,"schlangen":8,"wdpa":4,"ruhig":1,"routen":0,"wege":513,"viertel":4,"strasse":125,"verkehr":0,"bahn":0,"sehen":4,"markt":0,"gesund":1,"amt":1,"unterkunft":0}
+Gipfel KEIN POPUP
+Wandern 0 Wanderrouten · 11 unbenannte Pfade ab 1 km · 0 benannte Wege, 513 Wegstücke insgesamt. Eintrag antippen: Weg wird auf der Karte hervorgehoben, mit GPX-Datei und Details.
+Banner Unbenannter Pfad Richtung Núi Cẩn4,2 km · Schwierigkeit nicht angegebenQuelle: OpenStreetMapGPX speichernDetailsAusblenden
+Fehlgeschlagene Abrufe {}

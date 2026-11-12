@@ -1,0 +1,32 @@
+=== sapa-ipad
+st-natur 16 Einträge geladen.
+st-voegel Vogelsichtungen: 17.936 an 491 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-schlangen Schlangensichtungen: 278 an 84 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-wdpa 3 Gebiete geladen.
+st-stadt 693 Straßenabschnitte geladen.
+st-orte Sehenswertes: 82 · Alltag: 179 · Viertel und Verkehr: 98
+Zähler {"park":10,"garten":0,"wasser":5,"zoo":0,"reservat":1,"voegel":491,"schlangen":84,"wdpa":3,"ruhig":4,"routen":3,"wege":1527,"viertel":79,"strasse":693,"verkehr":17,"bahn":0,"sehen":77,"markt":21,"gesund":17,"amt":23,"unterkunft":118}
+Gipfel Đinh Núi Phan Xi PhăngGipfel · 3147.3 m EnglischFansipan Mountain Peak Der Fansipan ist ein Berg im Hoàng-Liên-Sơn-Gebirge. Mit einer Höhe von 3143 m ist er sowohl der höchste Gipfel Vietnams wie auch Indochinas. Er wird daher auch als "Dachgiebel Indochinas" bezeichnet. Wikipedia (de)OpenStreetMapI
+Wandern 3 Wanderrouten · 20 benannte Wege, 1.527 Wegstücke insgesamt. Eintrag antippen: Weg wird auf der Karte hervorgehoben, mit GPX-Datei und Details.
+Banner Sin Chai6,4 km · Schwierigkeit nicht angegebenQuelle: OpenStreetMapGPX speichernDetailsAusblenden
+Gift 42 Arten in 8 Gruppen. Gruppe öffnen für Verhalten, Vorbeugung und Erste Hilfe. Stand 2026-11-12.
+ Art  Chinese Green Tree Viper LC Trimeresurus stejnegeri · Squamata · Viperidae Trimeresurus stejnegeri is a species of venomous pit viper endemic to Asia. Two subspecies are currently recognized, includi
+Pflanzen 3.268 Pflanzenarten aus 18.997 Nachweisen um Sa Pa. Stand 2026-11-12.
+ Bilder {"n":72,"mit":8}
+Fehlgeschlagene Abrufe {"de.wikipedia.org 404":10,"en.wikipedia.org 404":5}
+=== sapa-iphone
+st-natur 16 Einträge geladen.
+st-voegel Vogelsichtungen: 17.936 an 491 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-schlangen Schlangensichtungen: 278 an 84 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-wdpa 3 Gebiete geladen.
+st-stadt 693 Straßenabschnitte geladen.
+st-orte Sehenswertes: 82 · Alltag: 179 · Viertel und Verkehr: 98
+Zähler {"park":10,"garten":0,"wasser":5,"zoo":0,"reservat":1,"voegel":491,"schlangen":84,"wdpa":3,"ruhig":4,"routen":3,"wege":1527,"viertel":79,"strasse":693,"verkehr":17,"bahn":0,"sehen":77,"markt":21,"gesund":17,"amt":23,"unterkunft":118}
+Gipfel Đinh Núi Phan Xi PhăngGipfel · 3147.3 m EnglischFansipan Mountain Peak Der Fansipan ist ein Berg im Hoàng-Liên-Sơn-Gebirge. Mit einer Höhe von 3143 m ist er sowohl der höchste Gipfel Vietnams wie auch Indochinas. Er wird daher auch als "Dachgiebel Indochinas" bezeichnet. Wikipedia (de)OpenStreetMapI
+Wandern 3 Wanderrouten · 20 benannte Wege, 1.527 Wegstücke insgesamt. Eintrag antippen: Weg wird auf der Karte hervorgehoben, mit GPX-Datei und Details.
+Banner Sin Chai6,4 km · Schwierigkeit nicht angegebenQuelle: OpenStreetMapGPX speichernDetailsAusblenden
+Gift 42 Arten in 8 Gruppen. Gruppe öffnen für Verhalten, Vorbeugung und Erste Hilfe. Stand 2026-11-12.
+ Art  Chinese Green Tree Viper LC Trimeresurus stejnegeri · Squamata · Viperidae Trimeresurus stejnegeri is a species of venomous pit viper endemic to Asia. Two subspecies are currently recognized, includi
+Pflanzen 3.268 Pflanzenarten aus 18.997 Nachweisen um Sa Pa. Stand 2026-11-12.
+ Bilder {"n":72,"mit":5}
+Fehlgeschlagene Abrufe {"de.wikipedia.org 404":9,"en.wikipedia.org 404":7}
