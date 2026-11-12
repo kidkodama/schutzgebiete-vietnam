@@ -27,6 +27,19 @@ const URL_ = `https://kidkodama.github.io/schutzgebiete-vietnam/${ORT}/?t=` + Da
     await p.locator('#a-wandern .va').first().click(); await p.waitForTimeout(4000);
     console.log('Banner', await p.locator('.vbanner').textContent().catch(() => 'KEIN BANNER'));
     await p.screenshot({ path: `test-bilder/${nm}-4-route.png` });
+    if (await p.locator('#ansichten .tab[data-a=gift]').count()) {
+      await p.locator('#ansichten .tab[data-a=gift]').click(); await p.waitForSelector('#a-gift details', { timeout: 30000 });
+      console.log('Gift', await p.textContent('#a-gift .vsub'));
+      await p.locator('#a-gift details summary').first().click(); await p.locator('#a-gift .va').first().click();
+      await p.waitForSelector('#a-gift .vk', { timeout: 30000 }); await p.waitForTimeout(2500);
+      console.log(' Art', (await p.textContent('#a-gift .vd')).replace(/\s+/g, ' ').slice(0, 200));
+      await p.screenshot({ path: `test-bilder/${nm}-5-gift.png` });
+      await p.locator('#ansichten .tab[data-a=pflanzen]').click(); await p.waitForSelector('#a-pflanzen .chip', { timeout: 30000 });
+      console.log('Pflanzen', await p.textContent('#a-pflanzen .vsub'));
+      await p.locator('#a-pflanzen .chip[data-g=rhodo]').click(); await p.locator('#a-pflanzen .pgrid').scrollIntoViewIfNeeded(); await p.waitForTimeout(8000);
+      console.log(' Bilder', JSON.stringify(await p.$$eval('#a-pflanzen img.bild', x => ({ n: x.length, mit: x.filter(i => i.getAttribute('src') && i.naturalWidth > 0).length }))));
+      await p.screenshot({ path: `test-bilder/${nm}-6-pflanzen.png` });
+    }
     console.log('Fehlgeschlagene Abrufe', JSON.stringify(fehl));
     await b.close();
   }

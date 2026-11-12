@@ -117,6 +117,20 @@
   .place{background:none;border:none;color:#e8edf1;font-size:11px;font-weight:600;text-shadow:0 0 3px #000,0 0 3px #000;white-space:nowrap}
   .place.ruhig{color:#7ff0dc;font-size:12.5px}
   .lstat{padding-left:16px}
+  #ansichten{overflow-x:auto;scrollbar-width:none}#ansichten::-webkit-scrollbar{display:none}#ansichten .tab{flex:1 0 auto;padding:6px 9px}
+  .gtext{padding:4px 16px 10px 16px;font-size:12.5px;line-height:1.55;color:var(--text)}.gtext h4{margin:10px 0 4px 0;font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+  .gtext ul{margin:0;padding-left:18px}.gtext li{margin:2px 0}.gtext .q{font-size:11px;color:var(--muted);margin-top:8px}.gtext a{color:var(--accent)}
+  .stufe{display:inline-block;padding:1px 7px;border-radius:4px;font-size:10px;font-weight:700;margin-left:6px;vertical-align:1px}.stufe.s3{background:#e53935;color:#fff}.stufe.s2{background:#fb8c00;color:#111}.stufe.s1{background:#fdd835;color:#111}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 10px 16px}.chip{padding:5px 9px;border-radius:14px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-size:12px;cursor:pointer}.chip.on{background:var(--accent);color:#06231f;border-color:var(--accent);font-weight:600}.chip small{color:inherit;opacity:.7;margin-left:4px}
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;padding:0 16px 12px 16px}
+  .pk2{cursor:pointer;background:var(--panel2);border-radius:7px;overflow:hidden;border:1px solid var(--line)}.pk2 .bild{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#1d262d}.pk2 .bild:not([src]){visibility:hidden}
+  .pk2 .t{padding:5px 7px 7px 7px;font-size:11.5px;line-height:1.3}.pk2 .t small{display:block;color:var(--muted);font-style:italic;font-size:10.5px}
+  .pdetail{grid-column:1/-1;background:var(--panel);border:1px solid var(--accent);border-radius:8px;padding:0 10px 10px 10px}
+  .foto{margin:0 16px 12px 16px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);font-size:12.5px;line-height:1.5}
+  .foto select,.foto input[type=password],.foto input[type=text]{width:100%;margin:4px 0 8px 0;padding:7px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:13px}
+  .foto label.dat{display:block;padding:10px;text-align:center;border:1px dashed var(--accent);border-radius:7px;color:var(--accent);cursor:pointer;margin:4px 0 8px 0}
+  .treffer{display:flex;gap:9px;align-items:center;padding:7px 0;border-top:1px solid var(--line);cursor:pointer}.treffer img{width:52px;height:52px;object-fit:cover;border-radius:6px;flex:none;background:#1d262d}
+  .treffer .pz{font-weight:700;color:var(--accent);min-width:38px}.hier{display:inline-block;background:#43a047;color:#fff;border-radius:4px;font-size:10px;padding:1px 6px;margin-left:4px}
   .vbanner button{display:inline-block!important;margin-right:12px}
   @media(max-width:820px){.leaflet-bottom.leaflet-left{margin-bottom:34px}}
   #ansichten{position:sticky;top:0;z-index:20;margin:0;border-radius:0;background:var(--panel2);border-bottom:1px solid var(--line)}
@@ -147,10 +161,12 @@
 <body>
 <div id="app">
   <div id="side">
-    <div id="ansichten" class="tabs"><button class="tab on" data-a="karte">Karte</button><button class="tab" data-a="voegel">Vögel</button><button class="tab" data-a="schlangen">Schlangen</button><button class="tab" data-a="wandern">Wandern</button></div>
+    <div id="ansichten" class="tabs"><button class="tab on" data-a="karte">Karte</button><button class="tab" data-a="voegel">Vögel</button><button class="tab" data-a="schlangen">Schlangen</button><button class="tab" data-a="wandern">Wandern</button><button class="tab" data-a="gift">Giftig</button><button class="tab" data-a="pflanzen">Pflanzen</button></div>
     <div id="a-voegel" hidden></div>
     <div id="a-schlangen" hidden></div>
     <div id="a-wandern" hidden></div>
+    <div id="a-gift" hidden></div>
+    <div id="a-pflanzen" hidden></div>
     <div id="a-karte">
     <div class="pad">
       <h1>Sa Pa – Natur und Wandern</h1>
@@ -864,7 +880,7 @@ async function vAufKarte(cfg,a){
 }
 function ansicht(a){
   document.querySelectorAll('#ansichten .tab').forEach(x=>x.classList.toggle('on',x.dataset.a===a));
-  document.getElementById('a-karte').hidden=a!=='karte'; document.getElementById('a-wandern').hidden=a!=='wandern'; REITER.forEach(c=>{c.el.hidden=c.id!==a;});
+  document.getElementById('a-karte').hidden=a!=='karte'; document.getElementById('a-wandern').hidden=a!=='wandern'; document.getElementById('a-gift').hidden=a!=='gift'; document.getElementById('a-pflanzen').hidden=a!=='pflanzen'; if(a==='gift') giftLaden(); if(a==='pflanzen') pflLaden(); REITER.forEach(c=>{c.el.hidden=c.id!==a;});
   document.body.classList.toggle('nurliste',a!=='karte'); document.getElementById('side').scrollTop=0;
   setTimeout(()=>map.invalidateSize(),50); const c=REITER.find(x=>x.id===a); if(c) vLaden(c);
 }
@@ -965,6 +981,189 @@ async function ladeWandern(){
   }catch(err){ teile.push('Wege nicht geladen ('+err.message+')'); }
   zeige(); ordnenBald(); wZeichne();
   sub.innerHTML=teile.map(esc).join(' · ')+'. Eintrag antippen: Weg wird auf der Karte hervorgehoben, mit GPX-Datei und Details.';
+}
+
+/* --- Reiter „Giftig“: giftige Tiergruppen um Sa Pa, mit Verhalten und Sicherheitstipps --- */
+const GIFTFARBE='#e53935';
+const GIFTGRUPPEN=[
+ {id:'schlangen',titel:'Giftschlangen',stufe:3,stufeText:'lebensgefährlich',
+  verhalten:'Grubenottern wie die Bambusottern sind grün oder braun gefärbt und sitzen gut getarnt in Gebüsch, Bambus und auf Ästen am Wegrand. Sie beißen meist, wenn man sie berührt oder auf sie tritt. Kobras und Kraits leben eher am Boden, Kraits sind vor allem nachts unterwegs. Nattern der Gattung Rhabdophis sieht man das Gift nicht an: Ihr Biss kann verzögert eine schwere Blutgerinnungsstörung auslösen.',
+  vorbeugen:['Feste Schuhe und lange Hosen tragen, keine Sandalen auf Pfaden.','Nachts immer mit Lampe gehen.','Nicht in Spalten, Löcher, Holzstapel oder dichtes Gebüsch greifen.','Schlangen nie anfassen, auch tote oder harmlos wirkende nicht. Langsam zurückweichen.','An Bächen und Tümpeln besonders aufmerksam sein.'],
+  nachBiss:['Ruhig bleiben, das gebissene Glied ruhigstellen.','Sofort ins Krankenhaus, auch ohne Beschwerden. Nur Gegengift hilft.','Ringe und Uhr abnehmen, bevor es anschwillt.','Nicht abbinden, kein Eis, nicht einschneiden, nicht aussaugen, keine Kräuter.','Wenn gefahrlos möglich: die Schlange aus Abstand fotografieren.'],
+  quellen:[['PAHO/WHO: 8 Punkte nach einem Schlangenbiss','https://paho.org/sites/default/files/2024-03/8-keys-bitten-snake-130324_0.pdf'],['NHS fitfortravel: Snake bites','https://fitfortravel.nhs.uk/advice/general-travel-health-advice/snake-bites'],['LSTM: Rhabdophis helleri','https://research.lstmed.ac.uk/en/publications/hemostatic-hellfire-rhabdophis-helleri-red-necked-keelback-snake-/']]},
+ {id:'hornissen',titel:'Hornissen, Wespen und Bienen',stufe:3,stufeText:'bei vielen Stichen lebensgefährlich',mit:['bienen'],
+  verhalten:'Hornissen (Vespa) bauen Nester in Bäumen, Büschen und im Boden und verteidigen sie im Schwarm. Massenangriffe sind in Vietnam gut dokumentiert: In einer Fallserie aus Ho-Chi-Minh-Stadt mit 65 Patienten bekamen 58 % ein akutes Nierenversagen, 4 starben. Auch Honigbienen greifen am Nest gemeinsam an. Für Allergiker kann schon ein einzelner Stich gefährlich sein.',
+  vorbeugen:['Auf summende Nester in Büschen, Baumhöhlen und am Boden achten und großen Abstand halten.','Nicht nach den Tieren schlagen und kein Nest stören.','Bei einem Angriff sofort zügig weggehen, nicht stehen bleiben.','Allergiker: Notfallset immer dabeihaben.'],
+  nachBiss:['Bei vielen Stichen sofort ins Krankenhaus, auch wenn es einem zunächst gut geht. Schock droht in den ersten Tagen, Nierenversagen oft erst später.','Bei Atemnot, Schwellung im Gesicht oder Schwindel nach einem Stich: Notruf 115.','Bienenstachel rasch herauskratzen.'],
+  quellen:[['Swarming hornet attacks: shock and acute kidney injury, a large case series from Vietnam (Nephrol Dial Transplant 2010)','https://pesquisa.bvsalud.org/sms/resource/pt/mdl-19934093']]},
+ {id:'skorpione',titel:'Skorpione',stufe:2,stufeText:'schmerzhaft, selten gefährlich',
+  verhalten:'Skorpione sind nachtaktiv und verstecken sich tagsüber unter Steinen, Rinde, Holz und gern auch in Schuhen und Kleidung. Große schwarze Waldskorpione (Heterometrus) gelten als vergleichsweise mild, kleinere Rindenskorpione (Lychas) als schmerzhafter. Eine Übersicht für Thailand stuft Stiche dort als meist nicht lebensgefährlich ein. Für Vietnam habe ich keine eigene Quelle gefunden.',
+  vorbeugen:['Schuhe, Kleidung und Schlafsack vor dem Anziehen ausschütteln.','Nicht unter Steine, Holz oder Rinde greifen.','Gepäck in Homestays nicht offen auf dem Boden lassen.'],
+  nachBiss:['Stelle mit Wasser und Seife waschen und kühlen (Eis nur in ein Tuch gewickelt).','Nicht abbinden, nicht einschneiden, keine Kräuterauflagen.','Ins Krankenhaus bei Atemnot, starkem Speichelfluss oder Schwitzen, Muskelzucken oder starken Bauchschmerzen.'],
+  quellen:[['Thailand Snakes: Scorpion stings, how bad is it?','https://thailandsnakes.com/thailand-scorpion-sting-how-bad-is-it/']]},
+ {id:'hundertfuesser',titel:'Riesenläufer (Hundertfüßer)',stufe:2,stufeText:'sehr schmerzhaft, meist harmlos',
+  verhalten:'Riesenläufer der Gattung Scolopendra werden über 15 cm lang. Sie beißen, wenn man sie greift oder in Schuhen und Bettzeug einklemmt. Eine Auswertung von Notaufnahmen in Hongkong beschreibt die Bisse als meist unkompliziert, aber stark schmerzhaft. Selten kam es zu Gewebsschäden oder verzögerter Schwellung.',
+  vorbeugen:['Schuhe und Bettzeug ausschütteln, besonders in einfachen Unterkünften.','Nicht mit bloßen Händen in Laub und unter Steine greifen.'],
+  nachBiss:['Stelle reinigen und kühlen.','Zum Arzt bei starker oder wiederkehrender Schwellung, Blasen, dunkler Haut an der Bissstelle oder Zeichen einer Allergie.'],
+  quellen:[['Fung, Lam, Wong: Centipede bite victims (Hong Kong Med J 2011)','https://hkmj.org/node/7943']]},
+ {id:'raupen',titel:'Brennraupen (Schneckenraupen)',stufe:1,stufeText:'Hautreizung',
+  verhalten:'Schneckenraupen (Limacodidae) tragen Dornen und Brennhaare, die bei Berührung Gift in die Haut abgeben. Sie sitzen auf Blättern und sind oft auffällig bunt, manche aber gut getarnt. Die Folgen reichen von Juckreiz bis zu starken Schmerzen, Schwellung und Blasen.',
+  vorbeugen:['Raupen nicht anfassen, auch nicht mit Kindern zusammen „anschauen“.','Beim Greifen an Blätter und Zweige am Wegrand aufpassen.'],
+  nachBiss:['Abgebrochene Haare mit Klebeband von der Haut abziehen.','Gründlich mit Wasser und Seife waschen, dann kühlen.','Bei starker Reaktion zum Arzt.'],
+  quellen:[['University of Kentucky: Stinging Caterpillars (ENTFACT-003)','https://entomology.mgcafe.uky.edu/ef003']]},
+ {id:'kaefer',titel:'Kurzflügler und Blasenkäfer',stufe:2,stufeText:'Hautverätzung',
+  verhalten:'Kurzflügler der Gattung Paederus, in Vietnam „kiến ba khoang“, sind schmale, rot-schwarz gebänderte Käfer von knapp 1 cm. Sie beißen und stechen nicht. Zerdrückt man sie auf der Haut, verätzt ihr Körpersaft (Pederin) die Haut. Sie fliegen nachts ins Licht und landen auf Kleidung und Betten. In Hanoi behandelte eine Hautklinik 2022 in drei Monaten rund 900 Fälle. Blasenkäfer (Meloidae) enthalten Cantharidin, das ebenfalls Blasen zieht und beim Verschlucken die Nieren schädigt.',
+  vorbeugen:['Nachts Fenster schließen oder Licht aus, besonders in Unterkünften am Feld oder Wald.','Bett und Kleidung vor dem Hinlegen abschütteln.','Käfer auf der Haut nicht zerdrücken oder wegwischen, sondern wegpusten.'],
+  nachBiss:['Stelle sofort mit Wasser und Seife waschen, nicht kratzen.','Nicht an die Augen fassen, bis die Hände gewaschen sind. Bei Kontakt mit den Augen spülen und zum Augenarzt.','Bei Blasen zum Arzt, nicht selbst behandeln.'],
+  quellen:[['VnExpress: Thousands in Hanoi get skin blisters as rove beetles enter mating season (19.10.2022)','https://e.vnexpress.net/news/news/thousands-in-hanoi-get-skin-blisters-as-rove-beetles-enter-mating-season-4525514.html'],['Poison Control (USA): Blister beetles, do not touch','https://www.poison.org/articles/blister-beetles-do-not-touch-194']]},
+ {id:'spinnen',titel:'Vogelspinnen und Witwen',stufe:2,stufeText:'schmerzhaft, selten ernst',
+  verhalten:'Fast alle Spinnen sind giftig, aber nur wenige für Menschen bedeutsam. Asiatische Vogelspinnen leben in Erdröhren und Spalten und beißen, wenn man sie greift oder in ihr Versteck fasst. Eine Auswertung von 24 Bissen der Gattung Chilobrachys aus Indien beschreibt Schmerz, Schwellung und teils Gewebsschäden, vor allem bei später Behandlung. Vogelspinnen können außerdem Brennhaare abstreifen, die Haut und Augen reizen. Witwenspinnen (Latrodectus) kommen in Asien vor. Ob sie um Sa Pa leben, zeigt die Liste unten.',
+  vorbeugen:['Nicht in Erdlöcher, Spalten oder unter Steine greifen.','Schuhe und Kleidung ausschütteln.','Spinnen nicht anfassen oder fotografieren, während man sie hält.'],
+  nachBiss:['Ruhigstellen, kühlen, hochlagern.','Brennhaare mit Klebeband abziehen, Augen gründlich ausspülen.','Zum Arzt bei zunehmender Schwellung, Verfärbung, Fieber, Muskelkrämpfen oder Zeichen einer Allergie.'],
+  quellen:[['Mondal u. a.: Chilobrachys, bite report and medical importance (Frontiers in Arachnid Science 2025)','https://public-pages-files-2025.frontiersin.org/journals/arachnid-science/articles/10.3389/frchs.2025.1598438/text'],['TCCC Guideline 63: Global Spider and Scorpion Envenomation Management (2024)','https://tccc.org.ua/en/guide/global-spider-and-scorpion-envenomation-management-cpg']]},
+ {id:'amphibien',titel:'Kröten und Krokodilmolche',stufe:2,stufeText:'giftig beim Essen',
+  verhalten:'Kröten tragen Gift in Haut und Drüsen. Sie sind ungefährlich, solange man sie nicht isst oder Hautsekret in Augen und Mund bringt. In Vietnam sterben immer wieder Menschen nach dem Verzehr von Krötenfleisch, zuletzt 2024 zwei Kinder in Gia Lai. Krokodilmolche (Tylototriton) haben ebenfalls Hautgift.',
+  vorbeugen:['Kröten und Molche nicht essen und nicht ablecken lassen, etwa von Hunden.','Nach dem Anfassen Hände waschen und nicht an Augen oder Mund fassen.'],
+  nachBiss:['Bei Übelkeit, Herzrasen oder Schwindel nach dem Verzehr: sofort ins Krankenhaus.'],
+  quellen:[['Tuổi Trẻ News: 2 kids die after eating toad meat (12.01.2024)','https://news.tuoitre.vn/2-kids-die-another-in-critical-condition-after-eating-toad-meat-in-vietnam-10377785.htm']]}
+];
+const G={arten:null,el:document.getElementById('a-gift'),cfg:{id:'gift',farbe:GIFTFARBE,marke:()=>'',titel:'Giftige Tiere'}};
+function giftArtZeile(a){ const zweit=[a.de?a.en:null,a.vi].filter(Boolean).join(' · ');
+  return `<div class="va" data-k="${a.k}"><span class="zn">${fmtN(a.n)}</span>${esc(vName(a))} <span class="iucn i-${a.c}">${a.c}</span><small><i>${esc(a.sci)}</i>${zweit?' · '+esc(zweit):''}</small></div>`; }
+async function giftLaden(){
+  if(G.arten) return;
+  G.el.innerHTML=`<div class="pad"><h1>Giftige Tiere um Sa Pa</h1><div class="sub vsub">Liste wird geladen …</div></div>
+    <div class="warnung"><b>Notruf in Vietnam: 115.</b> Krankenhäuser findest du im Reiter „Karte“ unter „Sehenswertes und Alltag“. Die Tipps hier sind eine Zusammenfassung der genannten Quellen und keine medizinische Beratung. Im Zweifel immer ärztlich abklären lassen.</div>
+    <div class="vliste"></div>
+    <div class="src" style="padding-top:12px"><p><b>Arten:</b> <a href="https://www.gbif.org/occurrence/search?decimal_latitude=22.15,22.55&decimal_longitude=103.6,104.05" target="_blank" rel="noopener">GBIF</a>, Nachweise im Kartenausschnitt um Sa Pa, wöchentlich abgerufen. Fehlt eine Art, heißt das nicht, dass sie hier nicht vorkommt. Wenig gemeldete Tiere wie Skorpione und Hundertfüßer sind sicher unvollständig.</p>
+    <p><b>Gefahrenstufen</b> sind meine Einordnung nach den genannten Quellen, keine amtliche Einteilung. Ameisen fehlen noch: Dazu habe ich keine belastbare Quelle für Vietnam gefunden. Bei Spinnen stehen nur Vogelspinnen und Witwen in der Liste, nicht die vielen harmlosen Arten.</p></div>`;
+  const sub=G.el.querySelector('.vsub');
+  try{ const r=await laden('gifttiere',()=>holeDatei('gifttiere'));
+    G.arten=r.daten.arten.filter(a=>!/ spec$/.test(a.sci)).map(a=>({...a,cls:a.c,c:CODE[a.iucn]||'NE'}));
+    const host=G.el.querySelector('.vliste');
+    host.innerHTML=GIFTGRUPPEN.map(g=>{ const l=G.arten.filter(a=>a.gruppe===g.id||(g.mit||[]).includes(a.gruppe));
+      return `<details><summary>${esc(g.titel)}<span class="stufe s${g.stufe}">${esc(g.stufeText)}</span><small></small><span>${l.length} Art${l.length===1?'':'en'}</span></summary>
+        <div class="gtext"><h4>Verhalten</h4>${esc(g.verhalten)}<h4>Vorbeugen</h4><ul>${g.vorbeugen.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+        <h4>Nach Biss oder Stich</h4><ul>${g.nachBiss.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+        <div class="q">Quellen: ${g.quellen.map(([t,u])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(t)}</a>`).join(' · ')}</div>
+        <h4>Nachgewiesene Arten (antippen für Bild und Text)</h4></div>${l.map(giftArtZeile).join('')||'<div class="spin">Keine Nachweise im Ausschnitt.</div>'}</details>`; }).join('');
+    sub.innerHTML=`${G.arten.length} Arten in ${GIFTGRUPPEN.length} Gruppen. Gruppe öffnen für Verhalten, Vorbeugung und Erste Hilfe. Stand ${esc(r.daten.stand)}.`;
+    host.addEventListener('click',async e=>{
+      const knopf=e.target.closest('.vk'); if(knopf){ vAufKarte(G.cfg,G.arten.find(a=>a.k===+knopf.dataset.k)); return; }
+      const z=e.target.closest('.va'); if(!z) return;
+      if(z.nextElementSibling&&z.nextElementSibling.classList.contains('vd')){ z.nextElementSibling.remove(); return; }
+      const a=G.arten.find(x=>x.k===+z.dataset.k), box=document.createElement('div'); box.className='vd'; box.textContent='Wird geladen …'; z.after(box);
+      const s=await enrich({key:a.k,sci:a.sci,cls:a.cls,order:a.o,family:a.f,iucn:a.c,n:a.n});
+      box.innerHTML=spCard({...s,de:a.de||s.de,en:a.en||s.en})+`<button class="vk" data-k="${a.k}">Sichtungen auf der Karte zeigen</button>`;
+    });
+  }catch(e){ sub.textContent='Liste konnte nicht geladen werden ('+e.message+'). Seite neu laden.'; G.arten=null; }
+}
+
+/* --- Reiter „Pflanzen“: Bestimmung per Foto (Pl@ntNet) und Bildvergleich mit den Pflanzen um Sa Pa --- */
+const PFLGRUPPEN=[
+ ['orchideen','Orchideen',a=>a.f==='Orchidaceae'],
+ ['rhodo','Rhododendren und Heidekraut',a=>a.f==='Ericaceae'],
+ ['farne','Farne und Bärlappe',a=>/^(Polypodiopsida|Lycopodiopsida)$/.test(a.c||'')],
+ ['moose','Moose',a=>/^(Bryophyta|Marchantiophyta|Anthocerotophyta)$/.test(a.p||'')],
+ ['nadel','Nadelbäume und Palmfarne',a=>/^(Pinopsida|Cycadopsida|Gnetopsida|Ginkgoopsida)$/.test(a.c||'')],
+ ['graeser','Gräser, Bambus und Seggen',a=>/^(Poaceae|Cyperaceae|Juncaceae)$/.test(a.f||'')],
+ ['ingwer','Ingwer, Bananen und Verwandte',a=>a.o==='Zingiberales'],
+ ['begonien','Begonien',a=>a.f==='Begoniaceae'],
+ ['aron','Aronstabgewächse',a=>a.f==='Araceae'],
+ ['rosen','Rosengewächse',a=>a.f==='Rosaceae'],
+ ['korb','Korbblütler',a=>a.f==='Asteraceae'],
+ ['lippen','Lippenblütler',a=>a.f==='Lamiaceae'],
+ ['andere','Weitere Pflanzen',a=>true]];
+const ORGANE=[['auto','Automatisch'],['leaf','Blatt'],['flower','Blüte'],['fruit','Frucht'],['bark','Rinde']];
+const P={arten:null,gruppe:'orchideen',suche:'',el:document.getElementById('a-pflanzen'),bilder:new Map(),warte:[],laufen:0,cfg:{id:'pflanzen',farbe:'#2e7d32',marke:()=>''}};
+const pflGruppe=a=>PFLGRUPPEN.find(g=>g[2](a))[0];
+const PSPEICHER='sapa-plantnet-schluessel';
+function pSchluessel(){ try{ return localStorage.getItem(PSPEICHER)||''; }catch(e){ return ''; } }
+function pSchluesselSetzen(k){ try{ k?localStorage.setItem(PSPEICHER,k):localStorage.removeItem(PSPEICHER); }catch(e){} }
+/* Bilder nacheinander laden, höchstens 4 zugleich */
+function pBild(a,img){
+  if(P.bilder.has(a.k)){ const s=P.bilder.get(a.k); if(s.img) img.src=s.img; return; }
+  P.warte.push([a,img]); pWeiter();
+}
+function pWeiter(){
+  while(P.laufen<4&&P.warte.length){ const [a,img]=P.warte.shift(); P.laufen++;
+    enrich({key:a.k,sci:a.sci,cls:a.c,order:a.o,family:a.f,iucn:CODE[a.iucn]||'NE',n:a.n}).then(s=>{ P.bilder.set(a.k,s); if(s.img&&img.isConnected) img.src=s.img; })
+      .catch(()=>{}).finally(()=>{ P.laufen--; pWeiter(); }); }
+}
+const pSicht=new IntersectionObserver(es=>es.forEach(e=>{ if(!e.isIntersecting) return; pSicht.unobserve(e.target); const a=P.arten.find(x=>x.k===+e.target.dataset.k); if(a) pBild(a,e.target); }),{rootMargin:'300px'});
+function pKachel(a){ return `<div class="pk2" data-k="${a.k}"><img class="bild" data-k="${a.k}" alt="" onerror="this.removeAttribute('src')"><div class="t">${esc(vName(a))}<small>${esc(a.sci)}</small></div></div>`; }
+function pZeichne(){
+  const host=P.el.querySelector('.pgrid'), s=P.suche.toLowerCase(); P.warte=[];
+  const l=s.length>=2?P.arten.filter(a=>[a.de,a.en,a.vi,a.sci,a.f].some(x=>x&&x.toLowerCase().includes(s))):P.arten.filter(a=>a.grp===P.gruppe);
+  P.el.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',s.length<2&&c.dataset.g===P.gruppe));
+  host.innerHTML=l.slice(0,300).map(pKachel).join('')||'<div class="spin">Keine Art gefunden.</div>';
+  P.el.querySelector('.pinfo').textContent=l.length>300?`Die ersten 300 von ${VZAHL.format(l.length)} Arten, nach Zahl der Nachweise. Suche grenzt weiter ein.`:`${VZAHL.format(l.length)} Arten, nach Zahl der Nachweise.`;
+  host.querySelectorAll('img.bild').forEach(i=>pSicht.observe(i));
+}
+async function pDetail(a,nach){
+  P.el.querySelectorAll('.pdetail').forEach(x=>x.remove());
+  const box=document.createElement('div'); box.className='pdetail vd'; box.textContent='Wird geladen …'; nach.after(box);
+  const s=P.bilder.get(a.k)||await enrich({key:a.k,sci:a.sci,cls:a.c,order:a.o,family:a.f,iucn:CODE[a.iucn]||'NE',n:a.n});
+  box.innerHTML=spCard({...s,de:a.de||s.de,en:a.en||s.en})+`<button class="vk" data-k="${a.k}">Fundorte auf der Karte zeigen</button>`;
+  box.scrollIntoView({block:'nearest'});
+}
+async function pVerkleinern(datei){
+  try{ const b=await createImageBitmap(datei); const f=Math.min(1,1600/Math.max(b.width,b.height));
+    const c=document.createElement('canvas'); c.width=Math.round(b.width*f); c.height=Math.round(b.height*f); c.getContext('2d').drawImage(b,0,0,c.width,c.height);
+    return await new Promise(r=>c.toBlob(x=>r(x||datei),'image/jpeg',.85)); }catch(e){ return datei; }
+}
+async function pBestimmen(){
+  const aus=P.el.querySelector('.pergebnis'), dateien=[...P.el.querySelector('#p-datei').files].slice(0,5), schl=P.el.querySelector('#p-schl').value.trim();
+  if(!dateien.length){ aus.textContent='Bitte zuerst ein Foto wählen oder aufnehmen.'; return; }
+  if(!schl){ aus.innerHTML='Ohne Pl@ntNet-Schlüssel geht die Bestimmung hier nicht. Ohne Schlüssel: Foto direkt bei <a style="color:var(--accent)" href="https://identify.plantnet.org/" target="_blank" rel="noopener">identify.plantnet.org</a> hochladen.'; return; }
+  pSchluesselSetzen(schl); aus.textContent='Foto wird verkleinert und an Pl@ntNet gesendet …';
+  const fd=new FormData(), organ=P.el.querySelector('#p-organ').value;
+  for(const d of dateien){ fd.append('images',await pVerkleinern(d),'foto.jpg'); fd.append('organs',organ); }
+  try{ const {r,text}=await mitFrist(`https://my-api.plantnet.org/v2/identify/all?api-key=${encodeURIComponent(schl)}&lang=de&nb-results=10&include-related-images=true`,{method:'POST',body:fd});
+    const j=JSON.parse(text||'{}');
+    if(r.status===404){ aus.textContent='Pl@ntNet hat keine passende Pflanze gefunden. Ein schärferes Foto von Blatt oder Blüte hilft.'; return; }
+    if(!r.ok){ aus.textContent=`Pl@ntNet meldet einen Fehler (${r.status}${j.message?': '+j.message:''}). Bei 401 oder 403 ist der Schlüssel falsch oder für diese Seite nicht freigegeben.`; return; }
+    const hier=new Map(P.arten.map(a=>[a.sci,a])), nachGbif=new Map(P.arten.map(a=>[a.k,a]));
+    aus.innerHTML=`<div style="margin:6px 0 2px 0;color:var(--muted)">Vorschläge von Pl@ntNet. „um Sa Pa“ heißt: in GBIF im Kartenausschnitt nachgewiesen.${j.remainingIdentificationRequests!=null?' Heute noch '+j.remainingIdentificationRequests+' Abfragen frei.':''}</div>`+
+      (j.results||[]).map(x=>{ const sci=x.species?.scientificNameWithoutAuthor||'', a=(x.gbif&&nachGbif.get(+x.gbif.id))||hier.get(sci);
+        const bild=(x.images||[])[0]?.url?.s||(x.images||[])[0]?.url?.m||'';
+        return `<div class="treffer" data-sci="${esc(sci)}" data-k="${a?a.k:''}">${bild?`<img src="${esc(bild)}" alt="">`:'<img alt="">'}<span class="pz">${Math.round((x.score||0)*100)} %</span><span>${esc((x.species?.commonNames||[])[0]||sci)}${a?'<span class="hier">um Sa Pa</span>':''}<br><small style="color:var(--muted)"><i>${esc(sci)}</i> · ${esc(x.species?.family?.scientificNameWithoutAuthor||'')}</small></span></div>`; }).join('');
+  }catch(e){ aus.textContent='Anfrage gescheitert ('+e.message+'). Ohne Netz geht die Fotobestimmung nicht.'; }
+}
+async function pflLaden(){
+  if(P.arten) return;
+  P.el.innerHTML=`<div class="pad"><h1>Pflanzen bestimmen</h1><div class="sub vsub">Liste wird geladen …</div></div>
+   <div class="foto"><b>1. Per Foto</b> über Pl@ntNet, eine Bilderkennung von Forschungsinstituten.
+     <label class="dat" for="p-datei">Foto aufnehmen oder wählen</label><input id="p-datei" type="file" accept="image/*" multiple hidden>
+     <div id="p-dname" style="color:var(--muted);font-size:11.5px"></div>
+     Pflanzenteil <select id="p-organ">${ORGANE.map(([v,t])=>`<option value="${v}">${t}</option>`).join('')}</select>
+     <details><summary style="padding:4px 0;font-size:12px;cursor:pointer">Pl@ntNet-Schlüssel ${pSchluessel()?'(gespeichert)':'(nötig, einmalig)'}</summary>
+       <div style="font-size:11.5px;color:var(--muted);margin:4px 0">Kostenlos unter <a style="color:var(--accent)" href="https://my.plantnet.org/" target="_blank" rel="noopener">my.plantnet.org</a> anlegen. Dort unter „Authorized domains“ <b>kidkodama.github.io</b> eintragen. Der Schlüssel bleibt nur auf diesem Gerät.</div>
+       <input id="p-schl" type="password" autocomplete="off" placeholder="API-Schlüssel" value="${esc(pSchluessel())}"></details>
+     <button class="vk" id="p-los" style="margin-top:6px">Bestimmen</button>
+     <div class="pergebnis" style="margin-top:6px"></div>
+     <div style="font-size:11px;color:var(--muted);margin-top:6px">Das Foto geht an Pl@ntNet. Ohne Schlüssel oder offline: <a style="color:var(--accent)" href="https://identify.plantnet.org/" target="_blank" rel="noopener">identify.plantnet.org</a> oder die Pl@ntNet-App.</div></div>
+   <div class="pad" style="padding-top:0"><b style="font-size:13px">2. Bildvergleich</b><div class="sub">Gruppe wählen und mit deiner Pflanze vergleichen. Bilder kommen aus Wikipedia und GBIF.</div></div>
+   <input class="vq" placeholder="Suchen: Name, lateinisch oder Familie" autocomplete="off">
+   <div class="chips"></div><div class="lstat pinfo" style="padding-bottom:6px"></div><div class="pgrid"></div>
+   <div class="src" style="padding-top:12px"><p><b>Quelle:</b> <a href="https://www.gbif.org/occurrence/search?taxon_key=6&decimal_latitude=22.15,22.55&decimal_longitude=103.6,104.05" target="_blank" rel="noopener">GBIF</a>, Pflanzennachweise im Kartenausschnitt um Sa Pa, wöchentlich abgerufen. Fotobestimmung: <a href="https://my.plantnet.org/doc/api/identify" target="_blank" rel="noopener">Pl@ntNet API</a>.</p>
+   <p><b>Grenzen:</b> Weder die Fotobestimmung noch der Bildvergleich ist sicher. <b>Pflanzen nie allein danach essen oder als Heilmittel verwenden.</b> Die Gruppen folgen der Verwandtschaft, nicht dem Aussehen. „Weitere Pflanzen“ enthält also auch Bäume, Sträucher und Kräuter.</p></div>`;
+  const sub=P.el.querySelector('.vsub');
+  P.el.querySelector('#p-datei').addEventListener('change',e=>{ const n=e.target.files.length; P.el.querySelector('#p-dname').textContent=n?`${n} Foto${n===1?'':'s'} gewählt`:''; });
+  P.el.querySelector('#p-los').onclick=pBestimmen;
+  P.el.querySelector('.pergebnis').addEventListener('click',e=>{ const t=e.target.closest('.treffer'); if(!t) return; const a=t.dataset.k&&P.arten.find(x=>x.k===+t.dataset.k);
+    if(a) pDetail(a,t); else window.open('https://www.gbif.org/species/search?q='+encodeURIComponent(t.dataset.sci),'_blank','noopener'); });
+  try{ const r=await laden('pflanzen',()=>holeDatei('pflanzen'));
+    P.arten=r.daten.arten.map(a=>({...a,grp:pflGruppe(a)}));
+    P.el.querySelector('.chips').innerHTML=PFLGRUPPEN.map(([id,t])=>`<button class="chip" data-g="${id}">${esc(t)}<small>${P.arten.filter(a=>a.grp===id).length}</small></button>`).join('');
+    P.el.querySelector('.chips').addEventListener('click',e=>{ const c=e.target.closest('.chip'); if(!c) return; P.gruppe=c.dataset.g; P.suche=''; P.el.querySelector('.vq').value=''; pZeichne(); });
+    P.el.querySelector('.vq').addEventListener('input',e=>{ P.suche=e.target.value.trim(); pZeichne(); });
+    P.el.querySelector('.pgrid').addEventListener('click',e=>{ const knopf=e.target.closest('.vk'); if(knopf){ vAufKarte(P.cfg,P.arten.find(a=>a.k===+knopf.dataset.k)); return; }
+      const k=e.target.closest('.pk2'); if(k) pDetail(P.arten.find(a=>a.k===+k.dataset.k),k); });
+    P.el.querySelector('.pergebnis').addEventListener('click',e=>{ const knopf=e.target.closest('.vk'); if(knopf) vAufKarte(P.cfg,P.arten.find(a=>a.k===+knopf.dataset.k)); });
+    sub.innerHTML=`${VZAHL.format(P.arten.length)} Pflanzenarten aus ${VZAHL.format(r.daten.nachweise)} Nachweisen um Sa Pa. Stand ${esc(r.daten.stand)}.`;
+    pZeichne();
+  }catch(e){ sub.textContent='Pflanzenliste konnte nicht geladen werden ('+e.message+'). Die Fotobestimmung funktioniert trotzdem.'; P.arten=[]; }
 }
 
 RUHIG.forEach(r=>viertelMarke(r[0],r[2],r[3],r[1]));
