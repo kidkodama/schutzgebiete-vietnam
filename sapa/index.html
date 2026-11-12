@@ -1074,12 +1074,8 @@ const PFLGRUPPEN=[
  ['korb','Korbblütler',a=>a.f==='Asteraceae'],
  ['lippen','Lippenblütler',a=>a.f==='Lamiaceae'],
  ['andere','Weitere Pflanzen',a=>true]];
-const ORGANE=[['auto','Automatisch'],['leaf','Blatt'],['flower','Blüte'],['fruit','Frucht'],['bark','Rinde']];
 const P={arten:null,gruppe:'orchideen',suche:'',el:document.getElementById('a-pflanzen'),bilder:new Map(),warte:[],laufen:0,cfg:{id:'pflanzen',farbe:'#2e7d32',marke:()=>''}};
 const pflGruppe=a=>PFLGRUPPEN.find(g=>g[2](a))[0];
-const PSPEICHER='sapa-plantnet-schluessel';
-function pSchluessel(){ try{ return localStorage.getItem(PSPEICHER)||''; }catch(e){ return ''; } }
-function pSchluesselSetzen(k){ try{ k?localStorage.setItem(PSPEICHER,k):localStorage.removeItem(PSPEICHER); }catch(e){} }
 /* Bilder nacheinander laden, höchstens 4 zugleich */
 function pBild(a,img){
   if(P.bilder.has(a.k)){ const s=P.bilder.get(a.k); if(s.img) img.src=s.img; return; }
@@ -1094,7 +1090,7 @@ const pSicht=new IntersectionObserver(es=>es.forEach(e=>{ if(!e.isIntersecting) 
 function pKachel(a){ return `<div class="pk2" data-k="${a.k}"><img class="bild" data-k="${a.k}" alt="" onerror="this.removeAttribute('src')"><div class="t">${esc(vName(a))}<small>${esc(a.sci)}</small></div></div>`; }
 function pZeichne(){
   const host=P.el.querySelector('.pgrid'), s=P.suche.toLowerCase(); P.warte=[];
-  const l=s.length>=2?P.arten.filter(a=>[a.de,a.en,a.vi,a.sci,a.f].some(x=>x&&x.toLowerCase().includes(s))):P.arten.filter(a=>a.grp===P.gruppe);
+  const l=s.length>=2?P.arten.filter(a=>[a.de,a.en,a.vi,a.sci,a.g,a.f].some(x=>x&&x.toLowerCase().includes(s))):P.arten.filter(a=>a.grp===P.gruppe);
   P.el.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',s.length<2&&c.dataset.g===P.gruppe));
   host.innerHTML=l.slice(0,300).map(pKachel).join('')||'<div class="spin">Keine Art gefunden.</div>';
   P.el.querySelector('.pinfo').textContent=l.length>300?`Die ersten 300 von ${VZAHL.format(l.length)} Arten, nach Zahl der Nachweise. Suche grenzt weiter ein.`:`${VZAHL.format(l.length)} Arten, nach Zahl der Nachweise.`;
@@ -1107,52 +1103,19 @@ async function pDetail(a,nach){
   box.innerHTML=spCard({...s,de:a.de||s.de,en:a.en||s.en})+`<button class="vk" data-k="${a.k}">Fundorte auf der Karte zeigen</button>`;
   box.scrollIntoView({block:'nearest'});
 }
-async function pVerkleinern(datei){
-  try{ const b=await createImageBitmap(datei); const f=Math.min(1,1600/Math.max(b.width,b.height));
-    const c=document.createElement('canvas'); c.width=Math.round(b.width*f); c.height=Math.round(b.height*f); c.getContext('2d').drawImage(b,0,0,c.width,c.height);
-    return await new Promise(r=>c.toBlob(x=>r(x||datei),'image/jpeg',.85)); }catch(e){ return datei; }
-}
-async function pBestimmen(){
-  const aus=P.el.querySelector('.pergebnis'), dateien=[...P.el.querySelector('#p-datei').files].slice(0,5), schl=P.el.querySelector('#p-schl').value.trim();
-  if(!dateien.length){ aus.textContent='Bitte zuerst ein Foto wählen oder aufnehmen.'; return; }
-  if(!schl){ aus.innerHTML='Ohne Pl@ntNet-Schlüssel geht die Bestimmung hier nicht. Ohne Schlüssel: Foto direkt bei <a style="color:var(--accent)" href="https://identify.plantnet.org/" target="_blank" rel="noopener">identify.plantnet.org</a> hochladen.'; return; }
-  pSchluesselSetzen(schl); aus.textContent='Foto wird verkleinert und an Pl@ntNet gesendet …';
-  const fd=new FormData(), organ=P.el.querySelector('#p-organ').value;
-  for(const d of dateien){ fd.append('images',await pVerkleinern(d),'foto.jpg'); fd.append('organs',organ); }
-  try{ const {r,text}=await mitFrist(`https://my-api.plantnet.org/v2/identify/all?api-key=${encodeURIComponent(schl)}&lang=de&nb-results=10&include-related-images=true`,{method:'POST',body:fd});
-    const j=JSON.parse(text||'{}');
-    if(r.status===404){ aus.textContent='Pl@ntNet hat keine passende Pflanze gefunden. Ein schärferes Foto von Blatt oder Blüte hilft.'; return; }
-    if(!r.ok){ aus.textContent=`Pl@ntNet meldet einen Fehler (${r.status}${j.message?': '+j.message:''}). Bei 401 oder 403 ist der Schlüssel falsch oder für diese Seite nicht freigegeben.`; return; }
-    const hier=new Map(P.arten.map(a=>[a.sci,a])), nachGbif=new Map(P.arten.map(a=>[a.k,a]));
-    aus.innerHTML=`<div style="margin:6px 0 2px 0;color:var(--muted)">Vorschläge von Pl@ntNet. „um Sa Pa“ heißt: in GBIF im Kartenausschnitt nachgewiesen.${j.remainingIdentificationRequests!=null?' Heute noch '+j.remainingIdentificationRequests+' Abfragen frei.':''}</div>`+
-      (j.results||[]).map(x=>{ const sci=x.species?.scientificNameWithoutAuthor||'', a=(x.gbif&&nachGbif.get(+x.gbif.id))||hier.get(sci);
-        const bild=(x.images||[])[0]?.url?.s||(x.images||[])[0]?.url?.m||'';
-        return `<div class="treffer" data-sci="${esc(sci)}" data-k="${a?a.k:''}">${bild?`<img src="${esc(bild)}" alt="">`:'<img alt="">'}<span class="pz">${Math.round((x.score||0)*100)} %</span><span>${esc((x.species?.commonNames||[])[0]||sci)}${a?'<span class="hier">um Sa Pa</span>':''}<br><small style="color:var(--muted)"><i>${esc(sci)}</i> · ${esc(x.species?.family?.scientificNameWithoutAuthor||'')}</small></span></div>`; }).join('');
-  }catch(e){ aus.textContent='Anfrage gescheitert ('+e.message+'). Ohne Netz geht die Fotobestimmung nicht.'; }
-}
 async function pflLaden(){
   if(P.arten) return;
   P.el.innerHTML=`<div class="pad"><h1>Pflanzen bestimmen</h1><div class="sub vsub">Liste wird geladen …</div></div>
-   <div class="foto"><b>1. Per Foto</b> über Pl@ntNet, eine Bilderkennung von Forschungsinstituten.
-     <label class="dat" for="p-datei">Foto aufnehmen oder wählen</label><input id="p-datei" type="file" accept="image/*" multiple hidden>
-     <div id="p-dname" style="color:var(--muted);font-size:11.5px"></div>
-     Pflanzenteil <select id="p-organ">${ORGANE.map(([v,t])=>`<option value="${v}">${t}</option>`).join('')}</select>
-     <details><summary style="padding:4px 0;font-size:12px;cursor:pointer">Pl@ntNet-Schlüssel ${pSchluessel()?'(gespeichert)':'(nötig, einmalig)'}</summary>
-       <div style="font-size:11.5px;color:var(--muted);margin:4px 0">Kostenlos unter <a style="color:var(--accent)" href="https://my.plantnet.org/" target="_blank" rel="noopener">my.plantnet.org</a> anlegen. Dort unter „Authorized domains“ <b>kidkodama.github.io</b> eintragen. Der Schlüssel bleibt nur auf diesem Gerät.</div>
-       <input id="p-schl" type="password" autocomplete="off" placeholder="API-Schlüssel" value="${esc(pSchluessel())}"></details>
-     <button class="vk" id="p-los" style="margin-top:6px">Bestimmen</button>
-     <div class="pergebnis" style="margin-top:6px"></div>
-     <div style="font-size:11px;color:var(--muted);margin-top:6px">Das Foto geht an Pl@ntNet. Ohne Schlüssel oder offline: <a style="color:var(--accent)" href="https://identify.plantnet.org/" target="_blank" rel="noopener">identify.plantnet.org</a> oder die Pl@ntNet-App.</div></div>
+   <div class="foto"><b>1. Per Foto, ohne Konto:</b> App <b>Seek by iNaturalist</b> (kostenlos, ohne Anmeldung, erkennt auf dem Gerät und funktioniert auch offline).
+     <a class="vk" style="display:block;text-align:center;text-decoration:none;margin:8px 0" href="https://apps.apple.com/app/id1353224144" target="_blank" rel="noopener">Seek im App Store öffnen</a>
+     <ol style="margin:4px 0 0 0;padding-left:18px"><li>Pflanze in Seek mit der Kamera erfassen.</li><li>Den lateinischen Namen, den Seek anzeigt, unten ins Suchfeld eintippen.</li><li>Steht die Art in der Liste, ist sie um Sa Pa nachgewiesen. Dann Bilder vergleichen und Fundorte ansehen.</li></ol>
+     <div style="font-size:11px;color:var(--muted);margin-top:6px">Seek nennt bei Unsicherheit nur Gattung oder Familie. Auch die Gattung findet die Suche hier.</div></div>
    <div class="pad" style="padding-top:0"><b style="font-size:13px">2. Bildvergleich</b><div class="sub">Gruppe wählen und mit deiner Pflanze vergleichen. Bilder kommen aus Wikipedia und GBIF.</div></div>
    <input class="vq" placeholder="Suchen: Name, lateinisch oder Familie" autocomplete="off">
    <div class="chips"></div><div class="lstat pinfo" style="padding-bottom:6px"></div><div class="pgrid"></div>
-   <div class="src" style="padding-top:12px"><p><b>Quelle:</b> <a href="https://www.gbif.org/occurrence/search?taxon_key=6&decimal_latitude=22.15,22.55&decimal_longitude=103.6,104.05" target="_blank" rel="noopener">GBIF</a>, Pflanzennachweise im Kartenausschnitt um Sa Pa, wöchentlich abgerufen. Fotobestimmung: <a href="https://my.plantnet.org/doc/api/identify" target="_blank" rel="noopener">Pl@ntNet API</a>.</p>
-   <p><b>Grenzen:</b> Weder die Fotobestimmung noch der Bildvergleich ist sicher. <b>Pflanzen nie allein danach essen oder als Heilmittel verwenden.</b> Die Gruppen folgen der Verwandtschaft, nicht dem Aussehen. „Weitere Pflanzen“ enthält also auch Bäume, Sträucher und Kräuter.</p></div>`;
+   <div class="src" style="padding-top:12px"><p><b>Quelle:</b> <a href="https://www.gbif.org/occurrence/search?taxon_key=6&decimal_latitude=22.15,22.55&decimal_longitude=103.6,104.05" target="_blank" rel="noopener">GBIF</a>, Pflanzennachweise im Kartenausschnitt um Sa Pa, wöchentlich abgerufen. Fotobestimmung: Seek by iNaturalist (eigene App).</p>
+   <p><b>Grenzen:</b> Weder Seek noch der Bildvergleich ist sicher. <b>Pflanzen nie allein danach essen oder als Heilmittel verwenden.</b> Die Gruppen folgen der Verwandtschaft, nicht dem Aussehen. „Weitere Pflanzen“ enthält also auch Bäume, Sträucher und Kräuter.</p></div>`;
   const sub=P.el.querySelector('.vsub');
-  P.el.querySelector('#p-datei').addEventListener('change',e=>{ const n=e.target.files.length; P.el.querySelector('#p-dname').textContent=n?`${n} Foto${n===1?'':'s'} gewählt`:''; });
-  P.el.querySelector('#p-los').onclick=pBestimmen;
-  P.el.querySelector('.pergebnis').addEventListener('click',e=>{ const t=e.target.closest('.treffer'); if(!t) return; const a=t.dataset.k&&P.arten.find(x=>x.k===+t.dataset.k);
-    if(a) pDetail(a,t); else window.open('https://www.gbif.org/species/search?q='+encodeURIComponent(t.dataset.sci),'_blank','noopener'); });
   try{ const r=await laden('pflanzen',()=>holeDatei('pflanzen'));
     P.arten=r.daten.arten.map(a=>({...a,grp:pflGruppe(a)}));
     P.el.querySelector('.chips').innerHTML=PFLGRUPPEN.map(([id,t])=>`<button class="chip" data-g="${id}">${esc(t)}<small>${P.arten.filter(a=>a.grp===id).length}</small></button>`).join('');
@@ -1160,10 +1123,9 @@ async function pflLaden(){
     P.el.querySelector('.vq').addEventListener('input',e=>{ P.suche=e.target.value.trim(); pZeichne(); });
     P.el.querySelector('.pgrid').addEventListener('click',e=>{ const knopf=e.target.closest('.vk'); if(knopf){ vAufKarte(P.cfg,P.arten.find(a=>a.k===+knopf.dataset.k)); return; }
       const k=e.target.closest('.pk2'); if(k) pDetail(P.arten.find(a=>a.k===+k.dataset.k),k); });
-    P.el.querySelector('.pergebnis').addEventListener('click',e=>{ const knopf=e.target.closest('.vk'); if(knopf) vAufKarte(P.cfg,P.arten.find(a=>a.k===+knopf.dataset.k)); });
     sub.innerHTML=`${VZAHL.format(P.arten.length)} Pflanzenarten aus ${VZAHL.format(r.daten.nachweise)} Nachweisen um Sa Pa. Stand ${esc(r.daten.stand)}.`;
     pZeichne();
-  }catch(e){ sub.textContent='Pflanzenliste konnte nicht geladen werden ('+e.message+'). Die Fotobestimmung funktioniert trotzdem.'; P.arten=[]; }
+  }catch(e){ sub.textContent='Pflanzenliste konnte nicht geladen werden ('+e.message+'). Seite neu laden.'; P.arten=[]; }
 }
 
 RUHIG.forEach(r=>viertelMarke(r[0],r[2],r[3],r[1]));
