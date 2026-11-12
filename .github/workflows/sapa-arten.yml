@@ -1,7 +1,7 @@
 name: Sa-Pa-Vögel und Schlangen holen
 on:
   push:
-    paths: ['.github/workflows/sapa-arten.yml','werkzeug/sapa_voegel.py','werkzeug/sapa_schlangen.py']
+    paths: ['.github/workflows/sapa-arten.yml','werkzeug/sapa_voegel.py','werkzeug/sapa_schlangen.py','werkzeug/sapa_gift_pflanzen.py']
   schedule:
     - cron: '47 4 * * 2'
   workflow_dispatch:
@@ -10,10 +10,10 @@ permissions:
 jobs:
   holen:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir -p sapa/daten && python3 werkzeug/sapa_voegel.py && python3 werkzeug/sapa_schlangen.py
+      - run: mkdir -p sapa/daten && python3 werkzeug/sapa_voegel.py && python3 werkzeug/sapa_schlangen.py && python3 werkzeug/sapa_gift_pflanzen.py
       - run: |
           git config user.name "sapa-daten"
           git config user.email "sapa-daten@users.noreply.github.com"
