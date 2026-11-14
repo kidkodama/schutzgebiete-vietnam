@@ -1,0 +1,21 @@
+name: Ninh-Bình-Daten holen
+on:
+  push:
+    paths: ['.github/workflows/ninhbinh-daten.yml','werkzeug/ninhbinh_daten.py']
+  schedule:
+    - cron: '37 3 * * 4'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  holen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p ninhbinh/daten && python3 werkzeug/ninhbinh_daten.py
+      - run: |
+          git config user.name "ninhbinh-daten"
+          git config user.email "ninhbinh-daten@users.noreply.github.com"
+          git add ninhbinh/daten
+          git diff --cached --quiet || { git commit -m "Ninh-Bình-Daten aktualisiert"; git pull --rebase origin main; git push; }

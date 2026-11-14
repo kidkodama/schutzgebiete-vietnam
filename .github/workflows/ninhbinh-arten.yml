@@ -1,0 +1,21 @@
+name: Ninh-Bình-Arten holen
+on:
+  push:
+    paths: ['.github/workflows/ninhbinh-arten.yml','werkzeug/ninhbinh_voegel.py','werkzeug/ninhbinh_schlangen.py','werkzeug/ninhbinh_gift_pflanzen.py']
+  schedule:
+    - cron: '59 4 * * 4'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  holen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p ninhbinh/daten && python3 werkzeug/ninhbinh_voegel.py && python3 werkzeug/ninhbinh_schlangen.py && python3 werkzeug/ninhbinh_gift_pflanzen.py
+      - run: |
+          git config user.name "ninhbinh-daten"
+          git config user.email "ninhbinh-daten@users.noreply.github.com"
+          git add ninhbinh/daten
+          git diff --cached --quiet || { git commit -m "Ninh-Bình-Arten aktualisiert"; git pull --rebase origin main; git push; }
