@@ -1,0 +1,32 @@
+=== ninhbinh-ipad
+st-natur 15 Einträge geladen.
+st-voegel Vogelsichtungen: 48.513 an 1.410 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-schlangen Schlangensichtungen: 302 an 189 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-wdpa 14 Gebiete geladen.
+st-stadt 675 Straßenabschnitte geladen.
+st-orte Sehenswertes: 111 · Alltag: 137 · Viertel und Verkehr: 63
+Zähler {"park":1,"garten":0,"wasser":12,"zoo":0,"reservat":2,"voegel":1410,"schlangen":189,"wdpa":14,"ruhig":9,"routen":0,"wege":758,"viertel":47,"strasse":675,"verkehr":7,"bahn":0,"sehen":110,"markt":6,"gesund":18,"amt":1,"unterkunft":112}
+Gipfel KEIN POPUP
+Wandern 0 Wanderrouten · 51 unbenannte Pfade ab 1 km · 9 benannte Wege, 758 Wegstücke insgesamt. Eintrag antippen: Weg wird auf der Karte hervorgehoben, mit GPX-Datei und Details.
+Banner Ancient Tree Trail3,9 km · Schwierigkeit nicht angegebenQuelle: OpenStreetMapGPX speichernDetailsAusblenden
+Gift 43 Arten in 8 Gruppen. Gruppe öffnen für Verhalten, Vorbeugung und Erste Hilfe. Stand 2026-11-15.
+ Art  Brown Spotted Pitviper LC Protobothrops mucrosquamatus · Squamata · Viperidae Protobothrops mucrosquamatus is a pit viper species endemic to Asia. Common names include: brown-spotted pit viper, Taiwa
+Pflanzen 1.820 Pflanzenarten aus 6.584 Nachweisen in Ninh Bình. Stand 2026-11-15.
+ Bilder {"n":0,"mit":0}
+Fehlgeschlagene Abrufe {"de.wikipedia.org 404":3}
+=== ninhbinh-iphone
+st-natur 15 Einträge geladen.
+st-voegel Vogelsichtungen: 48.513 an 1.410 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-schlangen Schlangensichtungen: 302 an 189 Stellen, alle Jahre. Punkt antippen für Arten und Quellen. Quelle: GBIF.org.
+st-wdpa 14 Gebiete geladen.
+st-stadt 675 Straßenabschnitte geladen.
+st-orte Sehenswertes: 111 · Alltag: 137 · Viertel und Verkehr: 63
+Zähler {"park":1,"garten":0,"wasser":12,"zoo":0,"reservat":2,"voegel":1410,"schlangen":189,"wdpa":14,"ruhig":9,"routen":0,"wege":758,"viertel":47,"strasse":675,"verkehr":7,"bahn":0,"sehen":110,"markt":6,"gesund":18,"amt":1,"unterkunft":112}
+Gipfel Khu Du lịch sinh Thái Tràng AnSehenswürdigkeit EnglischTrang An Boat Tour Start - Route 1, 2 and 3AdresseTrang An RoadTelefon+84916910480 OpenStreetMapIn Google Maps öffnenWebseite Quelle: OpenStreetMap (ODbL)
+Wandern 0 Wanderrouten · 51 unbenannte Pfade ab 1 km · 9 benannte Wege, 758 Wegstücke insgesamt. Eintrag antippen: Weg wird auf der Karte hervorgehoben, mit GPX-Datei und Details.
+Banner Ancient Tree Trail3,9 km · Schwierigkeit nicht angegebenQuelle: OpenStreetMapGPX speichernDetailsAusblenden
+Gift 43 Arten in 8 Gruppen. Gruppe öffnen für Verhalten, Vorbeugung und Erste Hilfe. Stand 2026-11-15.
+ Art  Brown Spotted Pitviper LC Protobothrops mucrosquamatus · Squamata · Viperidae Protobothrops mucrosquamatus is a pit viper species endemic to Asia. Common names include: brown-spotted pit viper, Taiwa
+Pflanzen 1.820 Pflanzenarten aus 6.584 Nachweisen in Ninh Bình. Stand 2026-11-15.
+ Bilder {"n":0,"mit":0}
+Fehlgeschlagene Abrufe {"de.wikipedia.org 404":1}
