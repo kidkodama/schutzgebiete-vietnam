@@ -1,0 +1,19 @@
+name: Sa-Pa-Giftliste holen
+on:
+  push:
+    paths: ['.github/workflows/sapa-gift.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  holen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p sapa/daten && NUR_GIFT=1 python3 werkzeug/sapa_gift_pflanzen.py
+      - run: |
+          git config user.name "sapa-daten"
+          git config user.email "sapa-daten@users.noreply.github.com"
+          git add sapa/daten
+          git diff --cached --quiet || { git commit -m "Sa-Pa-Arten aktualisiert"; git pull --rebase origin main; git push; }

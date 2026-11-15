@@ -76,7 +76,7 @@ GRUPPEN = [
  ("skorpione", [("Scorpiones", "ORDER")]),
  ("hundertfuesser", [("Scolopendromorpha", "ORDER")]),
  ("raupen", [("Limacodidae", "FAMILY")]),
- ("spinnen", [("Theraphosidae", "FAMILY"), ("Latrodectus", "GENUS")]),
+ ("spinnen", [("Araneae", "ORDER")]),
  ("kaefer", [("Paederus", "GENUS"), ("Meloidae", "FAMILY")]),
  ("amphibien", [("Bufonidae", "FAMILY"), ("Tylototriton", "GENUS")]),
 ]
@@ -90,6 +90,8 @@ for gid, taxa in GRUPPEN:
 namen(gift); gift.sort(key=lambda a: -a["n"])
 with open("sapa/daten/gifttiere.json", "w", encoding="utf-8") as f:
     json.dump(dict(stand=time.strftime("%Y-%m-%d"), arten=gift), f, ensure_ascii=False, separators=(",", ":"))
+import os
+if os.environ.get("NUR_GIFT"): sys.exit(0)
 pfl, n = arten_fuer([6], 6000)
 print("Pflanzen", len(pfl), "Nachweise", n)
 namen(pfl); pfl.sort(key=lambda a: -a["n"])
