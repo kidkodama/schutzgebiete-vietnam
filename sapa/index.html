@@ -1016,8 +1016,8 @@ const GIFTGRUPPEN=[
   vorbeugen:['Nachts Fenster schließen oder Licht aus, besonders in Unterkünften am Feld oder Wald.','Bett und Kleidung vor dem Hinlegen abschütteln.','Käfer auf der Haut nicht zerdrücken oder wegwischen, sondern wegpusten.'],
   nachBiss:['Stelle sofort mit Wasser und Seife waschen, nicht kratzen.','Nicht an die Augen fassen, bis die Hände gewaschen sind. Bei Kontakt mit den Augen spülen und zum Augenarzt.','Bei Blasen zum Arzt, nicht selbst behandeln.'],
   quellen:[['VnExpress: Thousands in Hanoi get skin blisters as rove beetles enter mating season (19.10.2022)','https://e.vnexpress.net/news/news/thousands-in-hanoi-get-skin-blisters-as-rove-beetles-enter-mating-season-4525514.html'],['Poison Control (USA): Blister beetles, do not touch','https://www.poison.org/articles/blister-beetles-do-not-touch-194']]},
- {id:'spinnen',titel:'Vogelspinnen und Witwen',stufe:2,stufeText:'schmerzhaft, selten ernst',
-  verhalten:'Fast alle Spinnen sind giftig, aber nur wenige für Menschen bedeutsam. Asiatische Vogelspinnen leben in Erdröhren und Spalten und beißen, wenn man sie greift oder in ihr Versteck fasst. Eine Auswertung von 24 Bissen der Gattung Chilobrachys aus Indien beschreibt Schmerz, Schwellung und teils Gewebsschäden, vor allem bei später Behandlung. Vogelspinnen können außerdem Brennhaare abstreifen, die Haut und Augen reizen. Witwenspinnen (Latrodectus) kommen in Asien vor. Ob sie um Sa Pa leben, zeigt die Liste unten.',
+ {id:'spinnen',titel:'Spinnen',stufe:1,stufeText:'meist harmlos, einzelne schmerzhaft',
+  verhalten:'Fast alle Spinnen sind giftig, aber nur wenige für Menschen bedeutsam. Asiatische Vogelspinnen leben in Erdröhren und Spalten und beißen, wenn man sie greift oder in ihr Versteck fasst. Eine Auswertung von 24 Bissen der Gattung Chilobrachys aus Indien beschreibt Schmerz, Schwellung und teils Gewebsschäden, vor allem bei später Behandlung. Vogelspinnen können außerdem Brennhaare abstreifen, die Haut und Augen reizen. Witwenspinnen (Latrodectus) kommen in Asien vor. In der Liste unten sind Vogelspinnen und Witwen rot markiert, alle anderen gemeldeten Spinnen gelten nach den genannten Quellen nicht als medizinisch bedeutsam.',
   vorbeugen:['Nicht in Erdlöcher, Spalten oder unter Steine greifen.','Schuhe und Kleidung ausschütteln.','Spinnen nicht anfassen oder fotografieren, während man sie hält.'],
   nachBiss:['Ruhigstellen, kühlen, hochlagern.','Brennhaare mit Klebeband abziehen, Augen gründlich ausspülen.','Zum Arzt bei zunehmender Schwellung, Verfärbung, Fieber, Muskelkrämpfen oder Zeichen einer Allergie.'],
   quellen:[['Mondal u. a.: Chilobrachys, bite report and medical importance (Frontiers in Arachnid Science 2025)','https://public-pages-files-2025.frontiersin.org/journals/arachnid-science/articles/10.3389/frchs.2025.1598438/text'],['TCCC Guideline 63: Global Spider and Scorpion Envenomation Management (2024)','https://tccc.org.ua/en/guide/global-spider-and-scorpion-envenomation-management-cpg']]},
@@ -1029,14 +1029,15 @@ const GIFTGRUPPEN=[
 ];
 const G={arten:null,el:document.getElementById('a-gift'),cfg:{id:'gift',farbe:GIFTFARBE,marke:()=>'',titel:'Giftige Tiere'}};
 function giftArtZeile(a){ const zweit=[a.de?a.en:null,a.vi].filter(Boolean).join(' · ');
-  return `<div class="va" data-k="${a.k}"><span class="zn">${fmtN(a.n)}</span>${esc(vName(a))} <span class="iucn i-${a.c}">${a.c}</span><small><i>${esc(a.sci)}</i>${zweit?' · '+esc(zweit):''}</small></div>`; }
+  const bedeutsam=a.gruppe==='spinnen'&&(a.f==='Theraphosidae'||a.g==='Latrodectus');
+  return `<div class="va" data-k="${a.k}"><span class="zn">${fmtN(a.n)}</span>${esc(vName(a))} <span class="iucn i-${a.c}">${a.c}</span>${bedeutsam?' <span class="gift">medizinisch bedeutsam</span>':''}<small><i>${esc(a.sci)}</i>${zweit?' · '+esc(zweit):''}</small></div>`; }
 async function giftLaden(){
   if(G.arten) return;
   G.el.innerHTML=`<div class="pad"><h1>Giftige Tiere um Sa Pa</h1><div class="sub vsub">Liste wird geladen …</div></div>
     <div class="warnung"><b>Notruf in Vietnam: 115.</b> Krankenhäuser findest du im Reiter „Karte“ unter „Sehenswertes und Alltag“. Die Tipps hier sind eine Zusammenfassung der genannten Quellen und keine medizinische Beratung. Im Zweifel immer ärztlich abklären lassen.</div>
     <div class="vliste"></div>
     <div class="src" style="padding-top:12px"><p><b>Arten:</b> <a href="https://www.gbif.org/occurrence/search?decimal_latitude=22.15,22.55&decimal_longitude=103.6,104.05" target="_blank" rel="noopener">GBIF</a>, Nachweise im Kartenausschnitt um Sa Pa, wöchentlich abgerufen. Fehlt eine Art, heißt das nicht, dass sie hier nicht vorkommt. Wenig gemeldete Tiere wie Skorpione und Hundertfüßer sind sicher unvollständig.</p>
-    <p><b>Gefahrenstufen</b> sind meine Einordnung nach den genannten Quellen, keine amtliche Einteilung. Ameisen fehlen noch: Dazu habe ich keine belastbare Quelle für Vietnam gefunden. Bei Spinnen stehen nur Vogelspinnen und Witwen in der Liste, nicht die vielen harmlosen Arten.</p></div>`;
+    <p><b>Gefahrenstufen</b> sind meine Einordnung nach den genannten Quellen, keine amtliche Einteilung. Ameisen fehlen noch: Dazu habe ich keine belastbare Quelle für Vietnam gefunden. Bei den Spinnen stehen alle gemeldeten Arten in der Liste. Rot markiert sind nur Vogelspinnen und Witwen.</p></div>`;
   const sub=G.el.querySelector('.vsub');
   try{ const r=await laden('gifttiere',()=>holeDatei('gifttiere'));
     G.arten=r.daten.arten.filter(a=>!/ spec$/.test(a.sci)).map(a=>({...a,cls:a.c,c:CODE[a.iucn]||'NE'}));
