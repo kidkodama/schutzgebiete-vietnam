@@ -1,0 +1,12 @@
+name: Einmalige Abfrage
+on:
+  push:
+    paths: ['werkzeug/abfrage.py']
+  workflow_dispatch:
+jobs:
+  abfrage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 werkzeug/abfrage.py
